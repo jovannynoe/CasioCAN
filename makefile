@@ -59,16 +59,16 @@ build :
 
 #borrar archivos generados
 clean :
-	rm -rf Output
+	rm -rf Build
 
 #---flash the image into the mcu-------------------------------------------------------------------
 flash :
-	openocd -f interface/stlink.cfg -f target/stm32g0x.cfg -c "program Build/$(TARGET).hex verify reset" -c shutdown
+	openocd -f board/st_nucleo_g0.cfg -c "program Build/$(TARGET).hex verify reset" -c shutdown
 
 #---open a debug server conection------------------------------------------------------------------
 open :
-#	openocd -f interface/stlink.cfg -f target/stm32g0x.cfg -c "reset_config srst_only srst_nogate"
-	JLinkGDBServer -if SWD -device stm32g0b1re -nogui
+	openocd -f board/st_nucleo_g0.cfg
+#	JLinkGDBServer -if SWD -device stm32g0b1re -nogui
 
 #---launch a debug session, NOTE: is mandatory to previously open a debug server session-----------
 debug :

@@ -1,3 +1,6 @@
+/**------------------------------------------------------------------------------------------------
+ * Archivo con la funcion principal del programa main, coloque aqui el codigo de su aplicacion
+-------------------------------------------------------------------------------------------------*/
 #include "app_bsp.h"
 
 
@@ -22,7 +25,7 @@ int main( void )
     for( ; ; )
     {
         HAL_GPIO_TogglePin( GPIOA, GPIO_PIN_5 );
-        HAL_Delay( 500u );
+        HAL_Delay( 1000u );
     }
 
     return 0u;
