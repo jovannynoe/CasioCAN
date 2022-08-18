@@ -4,7 +4,6 @@
 #include "app_bsp.h"
 #include <stdio.h>
 
-extern void initialise_monitor_handles(void);
 /**------------------------------------------------------------------------------------------------
 Brief.- Punto de entrada del programa
 -------------------------------------------------------------------------------------------------*/
@@ -13,7 +12,6 @@ int main( void )
     GPIO_InitTypeDef  GPIO_InitStruct;
     uint32_t i = 0;
 
-    initialise_monitor_handles();
 
     HAL_Init( );
 

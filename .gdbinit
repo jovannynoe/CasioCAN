@@ -8,7 +8,7 @@ set width 0
 #---connect and load program
 #target remote localhost:2331
 target remote localhost:3333
-mon arm semihosting enable
+#mon arm semihosting enable
 #mon enable semihosting 
 load
 mon reset halt
