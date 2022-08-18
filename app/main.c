@@ -2,14 +2,18 @@
  * Archivo con la funcion principal del programa main, coloque aqui el codigo de su aplicacion
 -------------------------------------------------------------------------------------------------*/
 #include "app_bsp.h"
+#include <stdio.h>
 
-
+extern void initialise_monitor_handles(void);
 /**------------------------------------------------------------------------------------------------
 Brief.- Punto de entrada del programa
 -------------------------------------------------------------------------------------------------*/
 int main( void )
 {
     GPIO_InitTypeDef  GPIO_InitStruct;
+    uint32_t i = 0;
+
+    initialise_monitor_handles();
 
     HAL_Init( );
 
@@ -20,12 +24,15 @@ int main( void )
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
     GPIO_InitStruct.Pin   = GPIO_PIN_5;
     HAL_GPIO_Init( GPIOA, &GPIO_InitStruct );
-    
+
+    printf("Hola semihosting\n\r");
 
     for( ; ; )
     {
         HAL_GPIO_TogglePin( GPIOA, GPIO_PIN_5 );
         HAL_Delay( 1000u );
+        printf("la variable i = %d\n\r", i);
+        i++;
     }
 
     return 0u;
