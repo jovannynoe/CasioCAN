@@ -27,6 +27,15 @@ CFLAGS += -MMD -MP
 AFLAGS = $(CPU)
 LFLAGS = $(CPU) -Wl,--gc-sections --specs=rdimon.specs --specs=nano.specs -Wl,-Map=Build/$(TARGET).map
 
+#Linter ccpcheck flags
+LNFLAGS  = --inline-suppr       # comments to suppress lint warnings
+LNFLAGS += --quiet              # spit only useful information
+LNFLAGS += --std=c99            # check against C11
+LNFLAGS += --template=gcc       # display warning gcc style
+LNFLAGS += --force              # evaluate all the #if sentences
+LNFLAGS += --platform=unix32    # lint againt a unix32 platform, but we are using arm32
+LNFLAGS += --cppcheck-build-dir=Build/checks
+
 #substituccion de prefijos y postfijos 
 OBJS = $(SRCS:%.c=Build/obj/%.o)
 OBJS := $(OBJS:%.s=Build/obj/%.o)
@@ -77,3 +86,8 @@ debug :
 #---Genrete project documentation with doxygen-----------------------------------------------------
 docs :
 	doxygen .doxyfile
+
+#---Run Static analysis
+lint :
+	mkdir -p Build/checks
+	cppcheck --addon=misra.json --suppressions-list=.msupress $(LNFLAGS) app

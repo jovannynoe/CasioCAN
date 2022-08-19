@@ -11,7 +11,6 @@
  *          Build/doxigen/html/index.html
  */
 #include "app_bsp.h"
-#include <stdio.h>
 
 /**
  * @brief   **Application entry point**
