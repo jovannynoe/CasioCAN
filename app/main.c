@@ -24,8 +24,6 @@
 int main( void )
 {
     GPIO_InitTypeDef  GPIO_InitStruct;
-    uint32_t i = 0;
-
 
     HAL_Init( );
 
@@ -37,14 +35,10 @@ int main( void )
     GPIO_InitStruct.Pin   = GPIO_PIN_5;
     HAL_GPIO_Init( GPIOA, &GPIO_InitStruct );
 
-    printf("Hola semihosting\n\r");
-
     for( ; ; )
     {
         HAL_GPIO_TogglePin( GPIOA, GPIO_PIN_5 );
         HAL_Delay( 1000u );
-        printf("la variable i = %d\n\r", i);
-        i++;
     }
 
     return 0u;
