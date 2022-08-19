@@ -73,3 +73,7 @@ open :
 #---launch a debug session, NOTE: is mandatory to previously open a debug server session-----------
 debug :
 	arm-none-eabi-gdb Build/$(TARGET).elf -iex "set auto-load safe-path /"
+
+#---Genrete project documentation with doxygen-----------------------------------------------------
+docs :
+	doxygen .doxyfile
