@@ -3,6 +3,9 @@
 -------------------------------------------------------------------------------------------------*/
 #include "app_bsp.h"
 
+//extern ADC_HandleTypeDef AdcHandler;
+//extern DMA_HandleTypeDef hdma_adc1;
+extern FDCAN_HandleTypeDef CANHandler;
 
 /**------------------------------------------------------------------------------------------------
 Brief.- Punto de entrada del programa
@@ -43,3 +46,48 @@ void SysTick_Handler( void )
 {
     HAL_IncTick( );
 }
+
+/**------------------------------------------------------------------------------------------------
+Brief.- Punto de entrada del programa
+-------------------------------------------------------------------------------------------------*/
+void EXTI4_15_IRQHandler( void )
+{
+    /*funcion que realiza las operaciones de interrupcion del gpio*/
+    HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_9 );
+    HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_8 );
+    HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_7 );
+    HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_13 );
+}
+
+/**------------------------------------------------------------------------------------------------
+Brief.- Punto de entrada del programa
+-------------------------------------------------------------------------------------------------*/
+/*void ADC1_COMP_IRQHandler( void )
+{                                  
+   HAL_ADC_IRQHandler( &AdcHandler );
+}*/
+
+/**------------------------------------------------------------------------------------------------
+Brief.- Punto de entrada del programa
+-------------------------------------------------------------------------------------------------*/
+/*void DMA1_Channel1_IRQHandler( void )
+{
+    HAL_DMA_IRQHandler( &hdma_adc1 );
+}*/
+
+/**------------------------------------------------------------------------------------------------
+Brief.- Punto de entrada del programa
+-------------------------------------------------------------------------------------------------*/
+/*void ADCx_IRQHandler( void )
+{
+    HAL_ADC_IRQHandler( &AdcHandler );
+}*/
+
+/**------------------------------------------------------------------------------------------------
+Brief.- Punto de entrada del programa
+-------------------------------------------------------------------------------------------------*/
+void TIM16_FDCAN_IT0_IRQHandler( void )
+{
+    HAL_FDCAN_IRQHandler( &CANHandler );
+}
+
