@@ -98,7 +98,12 @@ void Clock_Task( void ){
         break;
 
     case STATE_CHANGE_TIME:
-        printf( "Time %d:%d:%d\n\r", TimeCAN.tm.tm_hour, TimeCAN.tm.tm_min, TimeCAN.tm.tm_sec );
+
+        sTime.Hours = TimeCAN.tm.tm_hour;
+        sTime.Minutes = TimeCAN.tm.tm_min;
+        sTime.Seconds = TimeCAN.tm.tm_sec;
+
+        state = STATE_SHOW_TIME;
         break;
 
     case STATE_CHANGE_DATE:
