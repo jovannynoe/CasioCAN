@@ -78,8 +78,9 @@ void Clock_Task( void ){
     case STATE_SHOW_DATE:
         HAL_RTC_GetDate( &hrtc, &sDate, RTC_FORMAT_BCD );
 
-        
-        state = STATE_SHOW_DATE;
+        printf( "Date: %d/%d/%d\n\r", sDate.Date, sDate.Month, sDate.Year );
+
+        state = STATE_SHOW_ALARM;
         break;
 
     case STATE_SHOW_ALARM:
