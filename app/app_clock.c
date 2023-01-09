@@ -4,10 +4,17 @@
 #define RTC_ASYNCH_PREDIV 0x7F
 #define RTC_SYNCH_PREDIV 0x0F9
 
-RTC_HandleTypeDef hrtc;
+#define STATE_IDLE 0
+#define STATE_SHOW_TIME 1
+#define STATE_SHOW_DATE 2
+#define STATE_CHANGE_TIME 3
+#define STATE_CHANGE_DATE 4
 
+RTC_HandleTypeDef hrtc;
 RTC_TimeTypeDef sTime = {0};
 RTC_DateTypeDef sDate = {0};
+
+uint8_t state = 0;
 
 void Clock_Init( void ){
 
@@ -35,4 +42,21 @@ void Clock_Init( void ){
 
 void Clock_Task( void ){
 
+    switch (state)
+    {
+    case STATE_IDLE:
+        break;
+    
+    case STATE_SHOW_TIME:
+        break;
+
+    case STATE_SHOW_DATE:
+        break;
+
+    case STATE_CHANGE_TIME:
+        break;
+
+    case STATE_CHANGE_DATE:
+        break;
+    }
 }
