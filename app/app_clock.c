@@ -49,6 +49,7 @@ void Clock_Init( void ){
 }
 
 void Clock_Task( void ){
+    uint8_t flagAlarm = 0;
 
     switch (state)
     {
@@ -63,6 +64,9 @@ void Clock_Task( void ){
             }
             else if( TimeCAN.msg == SERIAL_MSG_DATE ){
                 state = STATE_CHANGE_DATE;
+            }
+            else if( TimeCAN.msg == SERIAL_MSG_ALARM ){
+                flagAlarm = 1;
             }
         }
         break;
@@ -84,6 +88,13 @@ void Clock_Task( void ){
         break;
 
     case STATE_SHOW_ALARM:
+
+        if( flagAlarm == 1 ){
+            printf( "Alarm: %d:%d\n\r", sTime.Hours, sTime.Minutes, sTime.Seconds );
+        }
+        else{
+            printf( "Alarm: 00:00\n\r" );
+        }
         break;
 
     case STATE_CHANGE_TIME:
