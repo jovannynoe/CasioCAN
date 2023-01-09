@@ -107,7 +107,12 @@ void Clock_Task( void ){
         break;
 
     case STATE_CHANGE_DATE:
-        printf( "Date: %d/%d/%d\n\r", TimeCAN.tm.tm_mday, TimeCAN.tm.tm_mon, TimeCAN.tm.tm_year );
+
+        sDate.Date = TimeCAN.tm.tm_mday;
+        sDate.Month = TimeCAN.tm.tm_mon;
+        sDate.Year = TimeCAN.tm.tm_year;
+
+        state = STATE_SHOW_DATE;
         break;
     }
 }
