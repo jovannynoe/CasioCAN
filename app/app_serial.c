@@ -31,7 +31,7 @@
 
 FDCAN_HandleTypeDef CANHandler;
 FDCAN_RxHeaderTypeDef CANRxHeader;
-APP_TmTypeDef TimeCAN;
+APP_MsgTypeDef TimeCAN;
 GPIO_InitTypeDef GPIO_InitStruct;
 FDCAN_TxHeaderTypeDef CANTxHeader;
 FDCAN_FilterTypeDef CANFilter;
@@ -257,20 +257,23 @@ void Serial_Task( void )
         switch (stateOk)
         {
         case STATE_TIME:
-            TimeCAN.tm_hour = RxData[2];
-            TimeCAN.tm_min = RxData[3];
-            TimeCAN.tm_sec = RxData[4];
+            TimeCAN.tm.tm_hour = RxData[2];
+            TimeCAN.tm.tm_min = RxData[3];
+            TimeCAN.tm.tm_sec = RxData[4];
+            TimeCAN.msg = STATE_TIME;
             break;
         
         case STATE_DATE:
-            TimeCAN.tm_mday = RxData[2];
-            TimeCAN.tm_mon = RxData[3];
-            TimeCAN.tm_year = year;
+            TimeCAN.tm.tm_mday = RxData[2];
+            TimeCAN.tm.tm_mon = RxData[3];
+            TimeCAN.tm.tm_year = year;
+            TimeCAN.msg = STATE_DATE;
             break;
 
         case STATE_ALARM:
-            TimeCAN.tm_hour = RxData[2];
-            TimeCAN.tm_min = RxData[3];
+            TimeCAN.tm.tm_hour = RxData[2];
+            TimeCAN.tm.tm_min = RxData[3];
+            TimeCAN.msg = STATE_ALARM;
             break;
         }
         state = STATE_IDLE;

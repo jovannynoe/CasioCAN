@@ -17,6 +17,7 @@ RTC_TimeTypeDef sTime = {0};
 RTC_DateTypeDef sDate = {0};
 
 uint8_t state = 0;
+uint32_t tickstartShowTime;
 
 void Clock_Init( void ){
 
@@ -42,6 +43,8 @@ void Clock_Init( void ){
     sDate.Date = 0x30;
     sDate.Year = 0x22;
     HAL_RTC_SetDate( &hrtc, &sDate, RTC_FORMAT_BCD );
+
+    tickstartShowTime = HAL_GetTick();
 }
 
 void Clock_Task( void ){
@@ -49,9 +52,22 @@ void Clock_Task( void ){
     switch (state)
     {
     case STATE_IDLE:
+        if( (HAL_GetTick() - tickstartShowTime) >= 1000 ){
+            tickstartShowTime = HAL_GetTick();
+            state = STATE_SHOW_TIME;
+        }
+        else if( TimeCAN.msg != SERIAL_MSG_NONE ){
+            if( TimeCAN.msg == SERIAL_MSG_TIME ){
+                state = STATE_CHANGE_TIME;
+            }
+            else if( TimeCAN.msg == SERIAL_MSG_DATE ){
+                state = STATE_CHANGE_DATE;
+            }
+        }
         break;
     
     case STATE_SHOW_TIME:
+
         break;
 
     case STATE_SHOW_DATE:

@@ -1,5 +1,6 @@
 #include "app_bsp.h"
 #include "app_serial.h"
+#include "app_clock.h"
 
 int main( void )
 {
