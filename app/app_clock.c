@@ -1,5 +1,6 @@
 #include "app_bsp.h"
 #include "app_clock.h"
+#include <stdio.h>
 
 #define RTC_ASYNCH_PREDIV 0x7F
 #define RTC_SYNCH_PREDIV 0x0F9
@@ -17,7 +18,7 @@ RTC_HandleTypeDef hrtc;
 RTC_TimeTypeDef sTime = {0};
 RTC_DateTypeDef sDate = {0};
 
-uint8_t state = 0;
+uint8_t stateClock = 0;
 uint32_t tickstartShowTime;
 
 void Clock_Init( void ){
@@ -47,25 +48,25 @@ void Clock_Init( void ){
 
     tickstartShowTime = HAL_GetTick();
 
-    state = STATE_IDLE;
+    stateClock = STATE_IDLE;
 }
 
 void Clock_Task( void ){
     uint8_t flagAlarm = 0;
 
-    switch (state)
+    switch (stateClock)
     {
     case STATE_IDLE:
         if( (HAL_GetTick() - tickstartShowTime) >= 1000 ){
             tickstartShowTime = HAL_GetTick();
-            state = STATE_SHOW_TIME;
+            stateClock = STATE_SHOW_TIME;
         }
         else if( TimeCAN.msg != SERIAL_MSG_NONE ){
             if( TimeCAN.msg == SERIAL_MSG_TIME ){
-                state = STATE_CHANGE_TIME;
+                stateClock = STATE_CHANGE_TIME;
             }
             else if( TimeCAN.msg == SERIAL_MSG_DATE ){
-                state = STATE_CHANGE_DATE;
+                stateClock = STATE_CHANGE_DATE;
             }
             else if( TimeCAN.msg == SERIAL_MSG_ALARM ){
                 flagAlarm = 1;
@@ -78,7 +79,7 @@ void Clock_Task( void ){
 
         printf( "Time %d:%d:%d\n\r", sTime.Hours, sTime.Minutes, sTime.Seconds );
 
-        state = STATE_SHOW_DATE;
+        stateClock = STATE_SHOW_DATE;
         break;
 
     case STATE_SHOW_DATE:
@@ -86,13 +87,13 @@ void Clock_Task( void ){
 
         printf( "Date: %d/%d/%d\n\r", sDate.Date, sDate.Month, sDate.Year );
 
-        state = STATE_SHOW_ALARM;
+        stateClock = STATE_SHOW_ALARM;
         break;
 
     case STATE_SHOW_ALARM:
 
         if( flagAlarm == 1 ){
-            printf( "Alarm: %d:%d\n\r", sTime.Hours, sTime.Minutes, sTime.Seconds );
+            printf( "Alarm: %ld:%ld\n\r", TimeCAN.tm.tm_hour, TimeCAN.tm.tm_min );
         }
         else{
             printf( "Alarm: 00:00\n\r" );
@@ -105,7 +106,7 @@ void Clock_Task( void ){
         sTime.Minutes = TimeCAN.tm.tm_min;
         sTime.Seconds = TimeCAN.tm.tm_sec;
 
-        state = STATE_SHOW_TIME;
+        stateClock = STATE_SHOW_TIME;
         break;
 
     case STATE_CHANGE_DATE:
@@ -114,7 +115,7 @@ void Clock_Task( void ){
         sDate.Month = TimeCAN.tm.tm_mon;
         sDate.Year = TimeCAN.tm.tm_year;
 
-        state = STATE_SHOW_DATE;
+        stateClock = STATE_SHOW_DATE;
         break;
     }
 }
