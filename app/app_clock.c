@@ -10,6 +10,8 @@
 #define STATE_CHANGE_TIME 3
 #define STATE_CHANGE_DATE 4
 
+extern void initialise_monitor_handles(void);
+
 RTC_HandleTypeDef hrtc;
 RTC_TimeTypeDef sTime = {0};
 RTC_DateTypeDef sDate = {0};
@@ -17,6 +19,8 @@ RTC_DateTypeDef sDate = {0};
 uint8_t state = 0;
 
 void Clock_Init( void ){
+
+    initialise_monitor_handles();
 
     hrtc.Instance = RTC;
     hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
