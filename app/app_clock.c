@@ -7,8 +7,9 @@
 #define STATE_IDLE 0
 #define STATE_SHOW_TIME 1
 #define STATE_SHOW_DATE 2
-#define STATE_CHANGE_TIME 3
-#define STATE_CHANGE_DATE 4
+#define STATE_SHOW_ALARM 3
+#define STATE_CHANGE_TIME 4
+#define STATE_CHANGE_DATE 5
 
 extern void initialise_monitor_handles(void);
 
@@ -67,16 +68,29 @@ void Clock_Task( void ){
         break;
     
     case STATE_SHOW_TIME:
+        HAL_RTC_GetTime( &hrtc, &sTime, RTC_FORMAT_BCD );
 
+        printf( "Time %d:%d:%d\n\r", sTime.Hours, sTime.Minutes, sTime.Seconds );
+
+        state = STATE_SHOW_DATE;
         break;
 
     case STATE_SHOW_DATE:
+        HAL_RTC_GetDate( &hrtc, &sDate, RTC_FORMAT_BCD );
+
+        
+        state = STATE_SHOW_DATE;
+        break;
+
+    case STATE_SHOW_ALARM:
         break;
 
     case STATE_CHANGE_TIME:
+        printf( "Time %d:%d:%d\n\r", TimeCAN.tm.tm_hour, TimeCAN.tm.tm_min, TimeCAN.tm.tm_sec );
         break;
 
     case STATE_CHANGE_DATE:
+        printf( "Date: %d/%d/%d\n\r", TimeCAN.tm.tm_mday, TimeCAN.tm.tm_mon, TimeCAN.tm.tm_year );
         break;
     }
 }
