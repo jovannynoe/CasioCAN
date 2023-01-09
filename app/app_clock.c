@@ -75,7 +75,7 @@ void Clock_Task( void ){
         break;
     
     case STATE_SHOW_TIME:
-        HAL_RTC_GetTime( &hrtc, &sTime, RTC_FORMAT_BCD );
+        HAL_RTC_GetTime( &hrtc, &sTime, RTC_FORMAT_BIN );
 
         printf( "Time %d:%d:%d\n\r", sTime.Hours, sTime.Minutes, sTime.Seconds );
 
@@ -83,7 +83,7 @@ void Clock_Task( void ){
         break;
 
     case STATE_SHOW_DATE:
-        HAL_RTC_GetDate( &hrtc, &sDate, RTC_FORMAT_BCD );
+        HAL_RTC_GetDate( &hrtc, &sDate, RTC_FORMAT_BIN );
 
         printf( "Date: %d/%d/%d\n\r", sDate.Date, sDate.Month, sDate.Year );
 
@@ -94,10 +94,13 @@ void Clock_Task( void ){
 
         if( flagAlarm == 1 ){
             printf( "Alarm: %ld:%ld\n\r", TimeCAN.tm.tm_hour, TimeCAN.tm.tm_min );
+            printf( "\n\r" );
         }
         else{
             printf( "Alarm: 00:00\n\r" );
         }
+
+        stateClock = STATE_IDLE;
         break;
 
     case STATE_CHANGE_TIME:
