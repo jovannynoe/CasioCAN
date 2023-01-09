@@ -46,6 +46,8 @@ void Clock_Init( void ){
     HAL_RTC_SetDate( &hrtc, &sDate, RTC_FORMAT_BCD );
 
     tickstartShowTime = HAL_GetTick();
+
+    state = STATE_IDLE;
 }
 
 void Clock_Task( void ){

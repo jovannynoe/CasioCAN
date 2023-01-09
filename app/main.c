@@ -5,11 +5,13 @@
 int main( void )
 {
     HAL_Init();
+    Clock_Init();
     Serial_Init();
 
     while(1){
 
         Serial_Task();
+        Clock_Task();
     }
 }
 
