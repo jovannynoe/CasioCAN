@@ -36,7 +36,7 @@ GPIO_InitTypeDef GPIO_InitStruct;
 FDCAN_TxHeaderTypeDef CANTxHeader;
 FDCAN_FilterTypeDef CANFilter;
 
-void BCDFormatToDecimalFormat( uint8_t numberBCD );
+uint8_t BCDFormatToDecimalFormat( uint8_t numberBCD );
 
 uint8_t RxData[8];
 uint8_t TxData[8];
@@ -105,14 +105,23 @@ void Serial_Task( void )
     case STATE_MESSAGE:
 
         if( RxData[1] == 0x01 ){
+            RxData[2] = BCDFormatToDecimalFormat(RxData[2]);
+            RxData[3] = BCDFormatToDecimalFormat(RxData[3]);
+            RxData[4] = BCDFormatToDecimalFormat(RxData[4]);
             stateTime = STATE_HOURS;
             stateSerial = STATE_TIME;
         }
         else if( RxData[1] == 0x02 ){
+            RxData[2] = BCDFormatToDecimalFormat(RxData[2]);
+            RxData[3] = BCDFormatToDecimalFormat(RxData[3]);
+            RxData[4] = BCDFormatToDecimalFormat(RxData[4]);
+            RxData[5] = BCDFormatToDecimalFormat(RxData[5]);
             stateDate = STATE_MONTH;
             stateSerial = STATE_DATE;
         }
         else if( RxData[1] == 0x03 ){
+            RxData[2] = BCDFormatToDecimalFormat(RxData[2]);
+            RxData[3] = BCDFormatToDecimalFormat(RxData[3]);
             stateAlarm = STATE_HOURS;
             stateSerial = STATE_ALARM;
         }
@@ -210,7 +219,7 @@ void Serial_Task( void )
             break;
         
         case STATE_YEAR:
-            year = (RxData[4] << 8) + RxData[5];    /*year = 0x07D4*/
+            year = (RxData[4] * 100) + RxData[5];    /*year = 0x2023*/
 
             if( (year >= 1900) && (year <= 2100) ){
                 stateDate = STATE_DAY;
@@ -309,15 +318,17 @@ void HAL_FDCAN_RxFifo0Callback( FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs
         }
         else{
             stateSerial = STATE_ERROR;
-        }
-        
+        }   
     }
 }
 
-void BCDFormatToDecimalFormat( uint8_t numberBCD )
+uint8_t BCDFormatToDecimalFormat( uint8_t numberBCD )
 {
+    uint8_t valueDecimal;
     /*RxData[2] = 0x34  ->  0011 0100    ->  RxData[2] = ( (0011 0100 >> 4) * 10)    ->     0000 0011 * 10  ->  0001 1110
 
     (RxData[2] & 0xF)   ->  0011 0100   ->  0100*/
-    numberBCD = ( (numberBCD >> 4) * 10 ) + (numberBCD & 0xF);
+    valueDecimal = ( (numberBCD >> 4) * 10 ) + (numberBCD & 0xF);
+
+    return valueDecimal;
 }
