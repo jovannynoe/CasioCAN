@@ -36,6 +36,8 @@ GPIO_InitTypeDef GPIO_InitStruct;
 FDCAN_TxHeaderTypeDef CANTxHeader;
 FDCAN_FilterTypeDef CANFilter;
 
+void BCDFormatToDecimalFormat( uint8_t numberBCD );
+
 uint8_t RxData[8];
 uint8_t TxData[8];
 uint8_t flag = 0;
@@ -310,4 +312,12 @@ void HAL_FDCAN_RxFifo0Callback( FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs
         }
         
     }
+}
+
+void BCDFormatToDecimalFormat( uint8_t numberBCD )
+{
+    /*RxData[2] = 0x34  ->  0011 0100    ->  RxData[2] = ( (0011 0100 >> 4) * 10)    ->     0000 0011 * 10  ->  0001 1110
+
+    (RxData[2] & 0xF)   ->  0011 0100   ->  0100*/
+    numberBCD = ( (numberBCD >> 4) * 10 ) + (numberBCD & 0xF);
 }
