@@ -87,7 +87,7 @@ void Serial_Init( void )
 void Serial_Task( void )
 {
     static uint8_t stateTime, stateDate, stateAlarm, stateOk;
-    uint16_t year = 0;
+    static uint16_t year;
     uint8_t i;
 
     switch (stateSerial)
@@ -267,6 +267,7 @@ void Serial_Task( void )
             TimeCAN.tm.tm_mday = RxData[2];
             TimeCAN.tm.tm_mon = RxData[3];
             TimeCAN.tm.tm_year = year;
+            
             TimeCAN.msg = STATE_DATE;
             break;
 

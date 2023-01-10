@@ -52,7 +52,7 @@ void Clock_Init( void ){
 }
 
 void Clock_Task( void ){
-    uint8_t flagAlarm = 0;
+    static uint8_t flagAlarm = 0;
 
     switch (stateClock)
     {
@@ -64,12 +64,15 @@ void Clock_Task( void ){
         else if( TimeCAN.msg != SERIAL_MSG_NONE ){
             if( TimeCAN.msg == SERIAL_MSG_TIME ){
                 stateClock = STATE_CHANGE_TIME;
+                TimeCAN.msg = SERIAL_MSG_NONE;
             }
             else if( TimeCAN.msg == SERIAL_MSG_DATE ){
                 stateClock = STATE_CHANGE_DATE;
+                TimeCAN.msg = SERIAL_MSG_NONE;
             }
             else if( TimeCAN.msg == SERIAL_MSG_ALARM ){
                 flagAlarm = 1;
+                TimeCAN.msg = SERIAL_MSG_NONE;
             }
         }
         break;
@@ -85,7 +88,25 @@ void Clock_Task( void ){
     case STATE_SHOW_DATE:
         HAL_RTC_GetDate( &hrtc, &sDate, RTC_FORMAT_BIN );
 
-        printf( "Date: %d/%d/%d\n\r", sDate.Date, sDate.Month, sDate.Year );
+        if( ( (sDate.Year <= 99) && (sDate.Year >= 0) ) || ( (TimeCAN.tm.tm_year <= 2099) && (TimeCAN.tm.tm_year >= 2000) ) ){
+            if( sDate.Year == 0 ){
+                printf( "Date: %d/%d/200%d\n\r", sDate.Date, sDate.Month, sDate.Year );   
+            }
+            else{
+                printf( "Date: %d/%d/20%d\n\r", sDate.Date, sDate.Month, sDate.Year );
+            } 
+        }
+        else if( (TimeCAN.tm.tm_year <= 1999) && (TimeCAN.tm.tm_year >= 1900) ){
+            if( sDate.Year == 0 ){
+                printf( "Date: %d/%d/190%d\n\r", sDate.Date, sDate.Month, sDate.Year );
+            }
+            else{
+                printf( "Date: %d/%d/19%d\n\r", sDate.Date, sDate.Month, sDate.Year );
+            }
+        }
+        else if( TimeCAN.tm.tm_year == 2100 ){
+            printf( "Date: %d/%d/210%d\n\r", sDate.Date, sDate.Month, sDate.Year );
+        }
 
         stateClock = STATE_SHOW_ALARM;
         break;
@@ -98,6 +119,7 @@ void Clock_Task( void ){
         }
         else{
             printf( "Alarm: 00:00\n\r" );
+            printf( "\n\r" );
         }
 
         stateClock = STATE_IDLE;
@@ -108,6 +130,7 @@ void Clock_Task( void ){
         sTime.Hours = TimeCAN.tm.tm_hour;
         sTime.Minutes = TimeCAN.tm.tm_min;
         sTime.Seconds = TimeCAN.tm.tm_sec;
+        HAL_RTC_SetTime( &hrtc, &sTime, RTC_FORMAT_BIN );
 
         stateClock = STATE_SHOW_TIME;
         break;
@@ -116,7 +139,17 @@ void Clock_Task( void ){
 
         sDate.Date = TimeCAN.tm.tm_mday;
         sDate.Month = TimeCAN.tm.tm_mon;
-        sDate.Year = TimeCAN.tm.tm_year;
+        if( (TimeCAN.tm.tm_year >= 1900) && (TimeCAN.tm.tm_year <= 1999) ){
+            sDate.Year = TimeCAN.tm.tm_year - 1900;
+        }
+        else if( (TimeCAN.tm.tm_year >= 2000) && (TimeCAN.tm.tm_year <= 2099) ){
+            sDate.Year = TimeCAN.tm.tm_year - 2000;
+        }
+        else if( TimeCAN.tm.tm_year == 2100 ){
+            sDate.Year = 0;
+        }
+        
+        HAL_RTC_SetDate( &hrtc, &sDate, RTC_FORMAT_BIN );
 
         stateClock = STATE_SHOW_DATE;
         break;
