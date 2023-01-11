@@ -17,6 +17,7 @@ extern void initialise_monitor_handles(void);
 RTC_HandleTypeDef hrtc;
 RTC_TimeTypeDef sTime = {0};
 RTC_DateTypeDef sDate = {0};
+RTC_AlarmTypeDef sAlarm = {0};
 
 uint8_t stateClock = 0;
 uint32_t tickstartShowTime;
@@ -46,6 +47,19 @@ void Clock_Init( void ){
     sDate.Year = 0x22;
     HAL_RTC_SetDate( &hrtc, &sDate, RTC_FORMAT_BCD );
 
+    sAlarm.AlarmTime.Hours = 0x01;
+    sAlarm.AlarmTime.Minutes = 0x0;
+    sAlarm.AlarmTime.Seconds = 0x0;
+    sAlarm.AlarmTime.SubSeconds = 0x0;
+    sAlarm.AlarmTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+    sAlarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
+    sAlarm.AlarmMask = RTC_ALARMMASK_NONE;
+    sAlarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
+    sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
+    sAlarm.AlarmDateWeekDay = 0x1;
+    sAlarm.Alarm = RTC_ALARM_A;
+    HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BCD );
+
     tickstartShowTime = HAL_GetTick();
 
     stateClock = STATE_IDLE;
@@ -53,7 +67,7 @@ void Clock_Init( void ){
 
 void Clock_Task( void ){
     static uint8_t flagAlarm = 0;
-    uint8_t yearMSB = 20;
+    static uint8_t yearMSB = 20;
 
     switch (stateClock)
     {
@@ -89,7 +103,12 @@ void Clock_Task( void ){
     case STATE_SHOW_DATE:
         HAL_RTC_GetDate( &hrtc, &sDate, RTC_FORMAT_BIN );
 
-        /*Pending*/
+        if( sDate.Year <= 9 ){
+            printf( "Date: %d/%d/%d0%d\n\r", sDate.Date, sDate.Month, yearMSB, sDate.Year );  
+        }
+        else{
+            printf( "Date: %d/%d/%d%d\n\r", sDate.Date, sDate.Month, yearMSB, sDate.Year );
+        }
 
         stateClock = STATE_SHOW_ALARM;
         break;
@@ -119,11 +138,11 @@ void Clock_Task( void ){
         break;
 
     case STATE_CHANGE_DATE:
+        yearMSB = (TimeCAN.tm.tm_year / 100);
 
         sDate.Date = TimeCAN.tm.tm_mday;
-        sDate.Month = TimeCAN.tm.tm_mon;
-        sDate.Year = (TimeCAN.tm.tm_year & 0xFF);
-        yearMSB = (TimeCAN.tm.tm_year >> 8);
+        sDate.Month = TimeCAN.tm.tm_mon; 
+        sDate.Year = (TimeCAN.tm.tm_year % 100);
         HAL_RTC_SetDate( &hrtc, &sDate, RTC_FORMAT_BIN );
 
         stateClock = STATE_SHOW_DATE;
