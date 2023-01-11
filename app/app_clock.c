@@ -11,6 +11,7 @@
 #define STATE_SHOW_ALARM 3
 #define STATE_CHANGE_TIME 4
 #define STATE_CHANGE_DATE 5
+#define STATE_CHANGE_ALARM 6
 
 extern void initialise_monitor_handles(void);
 
@@ -146,6 +147,9 @@ void Clock_Task( void ){
         HAL_RTC_SetDate( &hrtc, &sDate, RTC_FORMAT_BIN );
 
         stateClock = STATE_SHOW_DATE;
+        break;
+
+    case STATE_CHANGE_ALARM:
         break;
     }
 }
