@@ -2,10 +2,7 @@
  * Archivo con la funciones de interrupcion del micrcontroladores, revisar archivo startup_stm32g0b1.S
 -------------------------------------------------------------------------------------------------*/
 #include "app_bsp.h"
-
-//extern ADC_HandleTypeDef AdcHandler;
-//extern DMA_HandleTypeDef hdma_adc1;
-extern FDCAN_HandleTypeDef CANHandler;
+#include "app_serial.h"
 
 void NMI_Handler( void );
 void HardFault_Handler( void );
