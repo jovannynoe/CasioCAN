@@ -7,6 +7,14 @@
 //extern DMA_HandleTypeDef hdma_adc1;
 extern FDCAN_HandleTypeDef CANHandler;
 
+void NMI_Handler( void );
+void HardFault_Handler( void );
+void SVC_Handler( void );
+void PendSV_Handler( void );
+void SysTick_Handler( void );
+void EXTI4_15_IRQHandler( void );
+void TIM16_FDCAN_IT0_IRQHandler( void );
+
 /**------------------------------------------------------------------------------------------------
 Brief.- Punto de entrada del programa
 -------------------------------------------------------------------------------------------------*/
@@ -58,30 +66,6 @@ void EXTI4_15_IRQHandler( void )
     HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_7 );
     HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_13 );
 }
-
-/**------------------------------------------------------------------------------------------------
-Brief.- Punto de entrada del programa
--------------------------------------------------------------------------------------------------*/
-/*void ADC1_COMP_IRQHandler( void )
-{                                  
-   HAL_ADC_IRQHandler( &AdcHandler );
-}*/
-
-/**------------------------------------------------------------------------------------------------
-Brief.- Punto de entrada del programa
--------------------------------------------------------------------------------------------------*/
-/*void DMA1_Channel1_IRQHandler( void )
-{
-    HAL_DMA_IRQHandler( &hdma_adc1 );
-}*/
-
-/**------------------------------------------------------------------------------------------------
-Brief.- Punto de entrada del programa
--------------------------------------------------------------------------------------------------*/
-/*void ADCx_IRQHandler( void )
-{
-    HAL_ADC_IRQHandler( &AdcHandler );
-}*/
 
 /**------------------------------------------------------------------------------------------------
 Brief.- Punto de entrada del programa

@@ -3,44 +3,19 @@
 -------------------------------------------------------------------------------------------------*/
 #include "app_bsp.h"
 
-//extern DMA_HandleTypeDef hdma_adc1;
+void HAL_MspInit( void );
+void HAL_FDCAN_MspInit(FDCAN_HandleTypeDef *hfdcan);
+void HAL_RTC_MspInit( RTC_HandleTypeDef* hrtc );
 
 void HAL_MspInit( void )
 {
     
 }
 
-void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
-{
-    GPIO_InitTypeDef  GPIO_InitStruct;
-
-    __ADC_CLK_ENABLE();  /*activamos reloj del adc*/
-    __GPIOB_CLK_ENABLE(); /*reloj del pin con el canal a usar del adc*/
-      
-    GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1;
-    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG; /*configuramos en modo analogo*/
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init( GPIOB, &GPIO_InitStruct );
-
-    /*hdma_adc1.Instance = DMA1_Channel1;
-    hdma_adc1.Init.Request = DMA_REQUEST_ADC1;
-    hdma_adc1.Init.Direction = DMA_PERIPH_TO_MEMORY;
-    hdma_adc1.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_adc1.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_adc1.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
-    hdma_adc1.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
-    hdma_adc1.Init.Mode = DMA_CIRCULAR;
-    hdma_adc1.Init.Priority = DMA_PRIORITY_HIGH;
-    HAL_DMA_Init( &hdma_adc1 );
-
-    __HAL_LINKDMA( hadc, DMA_Handle, hdma_adc1 );
-
-    HAL_NVIC_SetPriority( ADC1_COMP_IRQn, 0, 0 );
-    HAL_NVIC_EnableIRQ( ADC1_COMP_IRQn );*/
-}
-
 void HAL_FDCAN_MspInit(FDCAN_HandleTypeDef *hfdcan)
 {
+    *hfdcan = *hfdcan;
+
     GPIO_InitTypeDef GpioCanStruct;
 
     /* Habilitamos los relojes de los perifericos GPIO y CAN */
@@ -60,6 +35,7 @@ void HAL_FDCAN_MspInit(FDCAN_HandleTypeDef *hfdcan)
 
 void HAL_RTC_MspInit( RTC_HandleTypeDef* hrtc )
 {
+    *hrtc = *hrtc;
     RCC_OscInitTypeDef        RCC_OscInitStruct = {0};
     RCC_PeriphCLKInitTypeDef  PeriphClkInitStruct = {0};
 
