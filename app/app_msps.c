@@ -9,7 +9,7 @@ void HAL_RTC_MspInit( RTC_HandleTypeDef* hrtc );
 
 void HAL_MspInit( void )
 {
-    
+       
 }
 
 void HAL_FDCAN_MspInit(FDCAN_HandleTypeDef *hfdcan)

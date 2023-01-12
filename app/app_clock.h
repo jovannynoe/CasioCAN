@@ -15,6 +15,9 @@ typedef enum
 
 extern APP_Messages typeMessage;
 
+extern WWDG_HandleTypeDef hwwdg;
+extern GPIO_InitTypeDef GPIO_InitStruct;
+
 void Clock_Init( void );
 void Clock_Task( void );
 
