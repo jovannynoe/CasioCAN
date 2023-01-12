@@ -10,6 +10,7 @@ uint32_t tickstartHeartBeat;
 int main( void )
 {
     HAL_Init();
+    Heart_Init();
     Clock_Init();
     Serial_Init();
 
@@ -17,6 +18,7 @@ int main( void )
 
         Serial_Task();
         Clock_Task();
+        Heart_Beat();
     }
 }
 
