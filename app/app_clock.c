@@ -1,5 +1,6 @@
 /**
- * @file    <app_clock.c>
+ * @file    app_clock.c
+ * @author  Jovanny Noé Casillas Franco
  * @brief   **This file is to can print the time**
  *
  * The driver works through state machines where the state idle is the main state, later, we have the others states called show time,
@@ -9,6 +10,7 @@
  * 
  * @note    We need take in count that this proyect just show the alarm but haven't a alert when the alarm is active, it just 
  *          keep showing the alarm.
+ * 
  */
 #include "app_bsp.h"
 #include "app_clock.h"

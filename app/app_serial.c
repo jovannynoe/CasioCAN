@@ -1,5 +1,6 @@
 /**
- * @file    <app_serial.c>
+ * @file    app_serial.c
+ * @author  Jovanny Noé Casillas Franco
  * @brief   **This file is to receive messages through CANdo and save the values in structure**
  *
  * The driver works through state machines where the state idle is the main state, later, we have the another state called message,

@@ -1,3 +1,17 @@
+/**
+ * @file    main.c
+ * @author  Jovanny Noé Casillas Franco
+ * @brief   **This file is to run the functions created in files app_serial and app_clock also some others functions created here**
+ *
+ * On the main file we run the functions from the other files and if we have functions in this file. First we run the HAL function,
+ * later the others functions to initialize the drivers and in the while we run the functions with tasks. In this file we created 
+ * two more functions, one for a heartbeat and another for the WWDG.
+ * 
+ * @note    Only the files inside folder app will be take them into account when the
+ *          doxygen runs by typing "make docs", index page is generated in
+ *          Build/doxigen/html/index.html
+ *          
+ */
 #include "app_bsp.h"
 #include "app_serial.h"
 #include "app_clock.h"
