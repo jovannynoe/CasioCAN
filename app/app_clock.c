@@ -1,3 +1,15 @@
+/**
+ * @file    <app_clock.c>
+ * @brief   **This file is to can print the time**
+ *
+ * The driver works through state machines where the state idle is the main state, later, we have the others states called show time,
+ * show date and show alarm that this are the states that print the time, date and alarm through of RTC peripheral. After that, we
+ * have the others states called change time, change date and change alarm that this states are to change the values through the
+ * structure created in the serial header file, since these values are processed in this another file. 
+ * 
+ * @note    We need take in count that this proyect just show the alarm but haven't a alert when the alarm is active, it just 
+ *          keep showing the alarm.
+ */
 #include "app_bsp.h"
 #include "app_clock.h"
 #include "app_serial.h"

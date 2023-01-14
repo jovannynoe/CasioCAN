@@ -1,28 +1,36 @@
-This is the title {#mainpage}
+Welcome to CasioCAN Project {#mainpage}
 ============
 
-This a subtitle
+What is CasioCAN?
 -------------
 
-Description with **bold text** and *cursive*
+CasioCAN is a clock that has communication with the CAN protocol and peripherals like RTC and SPI.
 
-- bullets
-- bullets
+First state machine.
+-------------
 
-1. num bullets
-2. num bullets
+The first state machine is built for 7 states called:
 
+1. IDLE 
+2. TIME 
+3. DATE 
+4. ALARM 
+5. MESSAGE
+6. OK 
+7. ERROR 
 
-> This is just a nice quote like the ones you can find in social media
+Second state machine.
+-------------
 
-This is how we can insert some code snippets
+The second state machine is built for 7 states called:
 
-```C
-void function( void )
-{
-
-}
-```
+1. IDLE 
+2. SHOW_TIME 
+3. SHOW_DATE 
+4. SHOW_ALARM 
+5. CHANGE_TIME 
+6. CHANGE_DATE 
+7. CHANGE_ALARM
 
 Some images can also be inserted 
 
