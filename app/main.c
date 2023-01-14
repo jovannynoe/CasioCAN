@@ -99,18 +99,16 @@ void Heart_Beat( void )
 }
 
 /**
- * @brief   **Provide a brief fucntion description (just one line)**
+ * @brief   **This dog init function is to configurate the WWDG**
  *
- * Provide the proper and detailed description for your function, you can use as many
- * lines as you want but keep each line less than 100 characteres
+ * In this function we go to configurate the WWDG peripheral to reset 
+ * the NUCLEO and when the flag is active we turn on the led in the 
+ * pin 7 in port C for 3 seconds and later we reset the NUCLEO.
+ * Finally we have the tickstart to initialize for the first 
+ * time to the peth the dog.
  *
- * @param   <param name>[in] Parameer description based on what does
- * @param   <param name>[out] add one line per paramter and indicates if input or output
+ * @retval  None
  *
- * @retval  Describe the return value and its potential values, 
- *          if void type None
- *
- * @note This is optional, just in case something very special needs to be take into account
  */
 void Dog_Init( void )
 {
