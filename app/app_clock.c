@@ -17,16 +17,26 @@
 #include "app_serial.h"
 #include <stdio.h>  /* cppcheck-suppress misra-c2012-21.6 ; The library is only for testing but it wont be included in the last part */
 
-#define RTC_ASYNCH_PREDIV 0x7F
-#define RTC_SYNCH_PREDIV 0x0F9
+/** 
+  * @defgroup RTC Defines to configurate RTC
+  @{ */
+#define RTC_ASYNCH_PREDIV 0x7F  /*!< Is the value to configurate the RTC */
+#define RTC_SYNCH_PREDIV 0x0F9  /*!< Is the value to configurate the RTC */
+/**
+  @} */
 
-#define STATE_IDLE 0
-#define STATE_SHOW_TIME 1
-#define STATE_SHOW_DATE 2
-#define STATE_SHOW_ALARM 3
-#define STATE_CHANGE_TIME 4
-#define STATE_CHANGE_DATE 5
-#define STATE_CHANGE_ALARM 6
+/** 
+  * @defgroup States States to we know what is the state without errors
+  @{ */
+#define STATE_IDLE 0            /*!< Idle state */
+#define STATE_SHOW_TIME 1       /*!< State to print the time */
+#define STATE_SHOW_DATE 2       /*!< State to print the date */
+#define STATE_SHOW_ALARM 3      /*!< State to print the alarm */
+#define STATE_CHANGE_TIME 4     /*!< State to change the values in time */
+#define STATE_CHANGE_DATE 5     /*!< State to change the values in date */
+#define STATE_CHANGE_ALARM 6    /*!< State to change the values in alarm */
+/**
+  @} */
 
 extern void initialise_monitor_handles(void);
 
@@ -35,7 +45,14 @@ static RTC_TimeTypeDef sTime = {0};
 static RTC_DateTypeDef sDate = {0};
 static RTC_AlarmTypeDef sAlarm = {0};
 
+/**
+ * @brief  Global variable because is used in two functions to manage the state machine
+ */
 static uint8_t stateClock = 0;
+
+/**
+ * @brief  Global variable because is used in two functions
+ */
 static uint32_t tickstartShowTime;
 
 /**

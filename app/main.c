@@ -17,7 +17,7 @@
 #include "app_clock.h"
 
 /** 
-  * @defgroup WWDG Defines to configuration in WWDG
+  * @defgroup WWDG Defines to configurate WWDG
   @{ */
 #define WWDG_WINDOW 0x50    /*!< Is the value to configurate the WWDG */
 #define WWDG_COUNTER 0x7F   /*!< Is the value to configurate the WWDG */
