@@ -38,6 +38,16 @@ static RTC_AlarmTypeDef sAlarm = {0};
 static uint8_t stateClock = 0;
 static uint32_t tickstartShowTime;
 
+/**
+ * @brief   **Clock init function is to configurate the RTC peripheral**
+ *
+ * In this function we go to configurate the RTC peripheral, also the 
+ * time, date and alarm to we can use in the clock task function. 
+ * Finally we have the tickstart to initialize for the first time to 
+ * go to the next state called show time and we go to idle state.
+ *
+ * @retval  None
+ */
 void Clock_Init( void ){
 
     initialise_monitor_handles();
@@ -81,6 +91,20 @@ void Clock_Init( void ){
     stateClock = STATE_IDLE;
 }
 
+/**
+ * @brief   **Clock task function is the part of the state machines**
+ *
+ * In this function, first we stay in the state idle, later we check if passed a second
+ * and if pass a second we go to the state show time, in this state we print the time, 
+ * later, we go to state show date where we print the date, after that we go to state
+ * show alarm where we print the alarm and we come back to state idle.
+ * If we have a message to change the time, date or alarm, so, in the state idle we check 
+ * what is the type of message and we go to that state and this state has to change the
+ * values in the RTC with the new values in own structure.
+ *
+ * @retval  None
+ *
+ */
 void Clock_Task( void ){
     static uint8_t yearMSB = 20u;
 
