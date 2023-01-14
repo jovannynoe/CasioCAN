@@ -59,18 +59,13 @@ int main( void )
 }
 
 /**
- * @brief   **Provide a brief fucntion description (just one line)**
+ * @brief   **This heart init function is to configurate the led to heartbeat**
  *
- * Provide the proper and detailed description for your function, you can use as many
- * lines as you want but keep each line less than 100 characteres
+ * In this function we go to configurate like output the led to the heartbeat and
+ * initializing for the first time the tickstart for the heartbeat.
  *
- * @param   <param name>[in] Parameer description based on what does
- * @param   <param name>[out] add one line per paramter and indicates if input or output
+ * @retval  None
  *
- * @retval  Describe the return value and its potential values, 
- *          if void type None
- *
- * @note This is optional, just in case something very special needs to be take into account
  */
 void Heart_Init( void )
 {
