@@ -81,18 +81,14 @@ void Heart_Init( void )
 }
 
 /**
- * @brief   **Provide a brief fucntion description (just one line)**
+ * @brief   **Heart Beat function is to count 300 ms and toggle the led**
  *
- * Provide the proper and detailed description for your function, you can use as many
- * lines as you want but keep each line less than 100 characteres
+ * We use a HAL_GetTick function to use like timer to count the time to
+ * turn on or turn off the led every 300 ms, in this case, the led is
+ * the pin 0 in the port C.
  *
- * @param   <param name>[in] Parameer description based on what does
- * @param   <param name>[out] add one line per paramter and indicates if input or output
+ * @retval  None
  *
- * @retval  Describe the return value and its potential values, 
- *          if void type None
- *
- * @note This is optional, just in case something very special needs to be take into account
  */
 void Heart_Beat( void )
 {
