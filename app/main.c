@@ -16,8 +16,20 @@
 #include "app_serial.h"
 #include "app_clock.h"
 
-#define WWDG_WINDOW 0x50
-#define WWDG_COUNTER 0x7F
+/** 
+  * @defgroup WWDG Defines to configuration in WWDG
+  @{ */
+#define WWDG_WINDOW 0x50    /*!< Is the value to configurate the WWDG */
+#define WWDG_COUNTER 0x7F   /*!< Is the value to configurate the WWDG */
+/**
+  @} */
+
+/** 
+  * @defgroup Heartbeat Define to the heart beat function
+  @{ */
+#define TOGGLE_LED 300      /*!< Is the time to toggle the pin 0 in the port C */
+/**
+  @} */
 
 static void Heart_Init( void );
 static void Heart_Beat( void );
@@ -27,7 +39,14 @@ static void Peth_The_Dog( void );
 WWDG_HandleTypeDef hwwdg;
 GPIO_InitTypeDef GPIO_InitStruct;
 
+/**
+ * @brief  Global variable because is used in two functions
+ */
 static uint32_t tickstartHeartBeat;
+
+/**
+ * @brief  Global variable because is used in two functions
+ */
 static uint32_t tickstartPethTheDog;
 
 /**
@@ -92,7 +111,7 @@ void Heart_Init( void )
  */
 void Heart_Beat( void )
 {
-    if( (HAL_GetTick() - tickstartHeartBeat) >= 300 ){
+    if( (HAL_GetTick() - tickstartHeartBeat) >= TOGGLE_LED ){
         tickstartHeartBeat = HAL_GetTick();
         HAL_GPIO_TogglePin( GPIOC, GPIO_PIN_0 );
     }
