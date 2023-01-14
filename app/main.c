@@ -30,6 +30,17 @@ GPIO_InitTypeDef GPIO_InitStruct;
 static uint32_t tickstartHeartBeat;
 static uint32_t tickstartPethTheDog;
 
+/**
+ * @brief   **This function is the main where we run everything the functions**
+ *
+ * In main function we run everything the functions, in the first part just we run the 
+ * functions to initilize some peripherals or protocols and in the while is own infinite
+ * loop where we run the tasks of externs functions and local functions created in the
+ * main file.
+ *
+ * @retval  None
+ *
+ */
 int main( void )
 {
     HAL_Init();
@@ -47,6 +58,20 @@ int main( void )
     }
 }
 
+/**
+ * @brief   **Provide a brief fucntion description (just one line)**
+ *
+ * Provide the proper and detailed description for your function, you can use as many
+ * lines as you want but keep each line less than 100 characteres
+ *
+ * @param   <param name>[in] Parameer description based on what does
+ * @param   <param name>[out] add one line per paramter and indicates if input or output
+ *
+ * @retval  Describe the return value and its potential values, 
+ *          if void type None
+ *
+ * @note This is optional, just in case something very special needs to be take into account
+ */
 void Heart_Init( void )
 {
     __GPIOC_CLK_ENABLE();
@@ -60,6 +85,20 @@ void Heart_Init( void )
     tickstartHeartBeat = HAL_GetTick();
 }
 
+/**
+ * @brief   **Provide a brief fucntion description (just one line)**
+ *
+ * Provide the proper and detailed description for your function, you can use as many
+ * lines as you want but keep each line less than 100 characteres
+ *
+ * @param   <param name>[in] Parameer description based on what does
+ * @param   <param name>[out] add one line per paramter and indicates if input or output
+ *
+ * @retval  Describe the return value and its potential values, 
+ *          if void type None
+ *
+ * @note This is optional, just in case something very special needs to be take into account
+ */
 void Heart_Beat( void )
 {
     if( (HAL_GetTick() - tickstartHeartBeat) >= 300 ){
@@ -68,6 +107,20 @@ void Heart_Beat( void )
     }
 }
 
+/**
+ * @brief   **Provide a brief fucntion description (just one line)**
+ *
+ * Provide the proper and detailed description for your function, you can use as many
+ * lines as you want but keep each line less than 100 characteres
+ *
+ * @param   <param name>[in] Parameer description based on what does
+ * @param   <param name>[out] add one line per paramter and indicates if input or output
+ *
+ * @retval  Describe the return value and its potential values, 
+ *          if void type None
+ *
+ * @note This is optional, just in case something very special needs to be take into account
+ */
 void Dog_Init( void )
 {
     if( __HAL_RCC_GET_FLAG( RCC_FLAG_WWDGRST ) != RESET ){
@@ -89,6 +142,20 @@ void Dog_Init( void )
     tickstartPethTheDog = HAL_GetTick();
 }
 
+/**
+ * @brief   **Provide a brief fucntion description (just one line)**
+ *
+ * Provide the proper and detailed description for your function, you can use as many
+ * lines as you want but keep each line less than 100 characteres
+ *
+ * @param   <param name>[in] Parameer description based on what does
+ * @param   <param name>[out] add one line per paramter and indicates if input or output
+ *
+ * @retval  Describe the return value and its potential values, 
+ *          if void type None
+ *
+ * @note This is optional, just in case something very special needs to be take into account
+ */
 void Peth_The_Dog( void )
 {
     if( (HAL_GetTick() - tickstartPethTheDog) >= 30 ){  /*25 - 32*/
