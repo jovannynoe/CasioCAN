@@ -132,18 +132,14 @@ void Dog_Init( void )
 }
 
 /**
- * @brief   **Provide a brief fucntion description (just one line)**
+ * @brief   **Peth The Dog function is to count between 25 to 32 ms and refresh**
  *
- * Provide the proper and detailed description for your function, you can use as many
- * lines as you want but keep each line less than 100 characteres
+ * We use a HAL_GetTick function to use like timer to count the time to
+ * refresh the WWDG between 25 to 32 ms, if the time is greater than 32 ms
+ * or less than 25 ms the WWDG will reset because not execute the function 
+ * to refresh the WWDG.
  *
- * @param   <param name>[in] Parameer description based on what does
- * @param   <param name>[out] add one line per paramter and indicates if input or output
- *
- * @retval  Describe the return value and its potential values, 
- *          if void type None
- *
- * @note This is optional, just in case something very special needs to be take into account
+ * @retval  None
  */
 void Peth_The_Dog( void )
 {
