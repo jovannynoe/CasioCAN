@@ -22,6 +22,9 @@
 #include "app_serial.h"
 #include "app_clock.h"
 
+/** 
+  * @defgroup States States to we know what is the state without errors
+  @{ */
 #define STATE_IDLE 0u
 #define STATE_TIME 1u
 #define STATE_DATE 2u
@@ -29,18 +32,33 @@
 #define STATE_MESSAGE 4u
 #define STATE_OK 5u
 #define STATE_ERROR 6u
+/**
+  @} */
 
+/** 
+  * @defgroup Substates Substates to we know what is the substate without errors
+  @{ */
 #define STATE_HOURS 1u
 #define STATE_MINUTES 2u
 #define STATE_SECONDS 3u
 #define STATE_DAY 1u
 #define STATE_MONTH 2u
 #define STATE_YEAR 3u
+/**
+  @} */
 
+/** 
+  * @defgroup CAN Values used in the transmission or reception of CAN
+  @{ */
 #define ERROR_TRANSMIT 0xAAu
 #define OK_TRANSMIT 0x55u
 #define CAN_TP 0x07u
+/**
+  @} */
 
+/** 
+  * @defgroup Months Months of the year
+  @{ */
 #define JAN 1u
 #define FEB 2u
 #define MAR 3u
@@ -53,6 +71,8 @@
 #define OCT 10u
 #define NOV 11u
 #define DEC 12u
+/**
+  @} */
 
 FDCAN_HandleTypeDef CANHandler;
 FDCAN_TxHeaderTypeDef CANTxHeader;
@@ -62,8 +82,19 @@ APP_MsgTypeDef TimeCAN;
 uint8_t BCDFormatToDecimalFormat( uint8_t numberBCD );
 void HAL_FDCAN_RxFifo0Callback( FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs );
 
+/**
+ * @brief  Global variable to save the values from the CANdo
+ */
 static uint8_t RxData[8];
+
+/**
+ * @brief  Global variable to we use like a flag
+ */
 static uint8_t flag = 0;
+
+/**
+ * @brief  Global variable to change the state in the state machines
+ */
 static uint8_t stateSerial = 0;
 
 /**
