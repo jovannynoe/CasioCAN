@@ -20,6 +20,7 @@
  */
 #include "app_bsp.h"
 #include "app_serial.h"
+#include "app_clock.h"
 
 #define STATE_IDLE 0u
 #define STATE_TIME 1u
@@ -35,6 +36,10 @@
 #define STATE_DAY 1u
 #define STATE_MONTH 2u
 #define STATE_YEAR 3u
+
+#define ERROR_TRANSMIT 0xAAu
+#define OK_TRANSMIT 0x55u
+#define CAN_TP 0x07u
 
 #define JAN 1u
 #define FEB 2u
@@ -61,10 +66,20 @@ static uint8_t RxData[8];
 static uint8_t flag = 0;
 static uint8_t stateSerial = 0;
 
+/**
+ * @brief   **Serial init function is to configurate the CAN protocol**
+ *
+ * In this function we go to configurate the CAN protocol, also the TX header and the filter
+ * to receive messages just with the ID 0x122 and 8 Bytes.
+ * Finally we have the IT function to when we receive a message we go to callback function.
+ *
+ * @retval  None
+ *
+ */
 void Serial_Init( void )
 {
-     /* Declaramos las opciones para configurar el modulo FDCAN1 para transmitir al bus CAN a 100Kbps
-     y sample point de 75% */
+    /* Declaramos las opciones para configurar el modulo FDCAN1 para transmitir al bus CAN a 100Kbps
+    y sample point de 75% */
     CANHandler.Instance                 = FDCAN1;
     CANHandler.Init.Mode                = FDCAN_MODE_NORMAL;
     CANHandler.Init.FrameFormat         = FDCAN_FRAME_CLASSIC;
@@ -104,6 +119,21 @@ void Serial_Init( void )
     HAL_FDCAN_ActivateNotification( &CANHandler, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0 );   
 }
 
+/**
+ * @brief   **Serial task function is the part of the state machines**
+ *
+ * In this function, first we stay in the state idle, later we check if flag is equal to one
+ * we go to message state, in this state we check what is the type of message to go to next 
+ * state but, before we use the function to change from BCD format to decimal format.
+ * When we are in the next state taking in count the type of message just we validate if the 
+ * values are ok, if the values aren't ok we go to error state, in this state we transmit 
+ * a error message to cando, but, if the values are ok, so, we go to ok state and we save the 
+ * values in a structure to can use with the app_clock file and we transmit a ok message to 
+ * cando.
+ *
+ * @retval  None
+ *
+ */
 void Serial_Task( void )
 {
     static uint8_t stateTime; 
@@ -126,14 +156,14 @@ void Serial_Task( void )
     
     case STATE_MESSAGE:
 
-        if( RxData[1] == 1u ){
+        if( RxData[1] == (uint8_t)SERIAL_MSG_TIME ){
             RxData[2] = BCDFormatToDecimalFormat(RxData[2]);
             RxData[3] = BCDFormatToDecimalFormat(RxData[3]);
             RxData[4] = BCDFormatToDecimalFormat(RxData[4]);
             stateTime = STATE_HOURS;
             stateSerial = STATE_TIME;
         }
-        else if( RxData[1] == 2u ){
+        else if( RxData[1] == (uint8_t)SERIAL_MSG_DATE ){
             RxData[2] = BCDFormatToDecimalFormat(RxData[2]);
             RxData[3] = BCDFormatToDecimalFormat(RxData[3]);
             RxData[4] = BCDFormatToDecimalFormat(RxData[4]);
@@ -141,7 +171,7 @@ void Serial_Task( void )
             stateDate = STATE_MONTH;
             stateSerial = STATE_DATE;
         }
-        else if( RxData[1] == 3u ){
+        else if( RxData[1] == (uint8_t)SERIAL_MSG_ALARM ){
             RxData[2] = BCDFormatToDecimalFormat(RxData[2]);
             RxData[3] = BCDFormatToDecimalFormat(RxData[3]);
             stateAlarm = STATE_HOURS;
@@ -248,7 +278,7 @@ void Serial_Task( void )
             break;
         
         case STATE_YEAR:
-            year = (RxData[4] * 100u) + RxData[5];    /*year = 0x2023*/
+            year = (RxData[4] * 100u) + RxData[5];    
 
             if( (year >= 1900u) && (year <= 2100u) ){
                 stateDate = STATE_DAY;
@@ -295,7 +325,7 @@ void Serial_Task( void )
         TxData[0] = RxData[0];
 
         for( i = 1u; i < 8u; i++ ){
-            TxData[i] = 0x55u;
+            TxData[i] = OK_TRANSMIT;
         }
 
         HAL_FDCAN_AddMessageToTxFifoQ( &CANHandler, &CANTxHeader, TxData );
@@ -334,7 +364,7 @@ void Serial_Task( void )
         TxData[0] = RxData[0];
 
         for( i = 1u; i < 8u; i++ ){
-            TxData[i] = 0xAAu;
+            TxData[i] = ERROR_TRANSMIT;
         }
 
         HAL_FDCAN_AddMessageToTxFifoQ( &CANHandler, &CANTxHeader, TxData );
@@ -347,6 +377,20 @@ void Serial_Task( void )
     }
 }
 
+/**
+ * @brief   **CAN Callback function is to active the flag**
+ *
+ * In this function, we get the RX message and save the values in RxData to we can validate
+ * the values in the state machine, but before, we validate the first byte in RxData 
+ * because this byte is CAN-TP, so, if this byte is correct, flag receive 1 and stateSerial
+ * receive idle state if this byte isn't correct, so we go to error state.  
+ * 
+ * @param   <*hfdcan>[out] Is a parameter that the function needs to work.
+ * @param   <RxFifo0ITs>[out] Is a parameter that the function needs to work.
+ *
+ * @retval  None
+ *
+ */
 void HAL_FDCAN_RxFifo0Callback( FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs )
 {
     FDCAN_RxHeaderTypeDef CANRxHeader;
@@ -355,8 +399,8 @@ void HAL_FDCAN_RxFifo0Callback( FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs
         /* Retrieve Rx messages from RX FIFO0 */
         HAL_FDCAN_GetRxMessage( hfdcan, FDCAN_RX_FIFO0, &CANRxHeader, RxData );
 
-        if( RxData[0] == 0x07u ){
-            flag = 1;
+        if( RxData[0] == CAN_TP ){
+            flag = 1u;
             stateSerial = STATE_IDLE;
         }
         else{
@@ -365,12 +409,25 @@ void HAL_FDCAN_RxFifo0Callback( FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs
     }
 }
 
+/**
+ * @brief   **BCD to Decimal function is to convert values to decimal**
+ *
+ * In this function, we have a parameter in BCD format, so, we will change the format
+ * to decimal format with a formula.
+ * First we move four bits the value in BCD and we multiply by 10, later the value in 
+ * BCD format we make a operation with the logic operator AND only to the 4 LSB and 
+ * finally we make a sum between this two values and we return the value in decimal
+ * format. 
+ * 
+ * @param   <numberBCD>[out] Is a parameter in BCD format of 8 bits.
+ *
+ * @retval  We return the value in decimal format with values between 0 to 99
+ *
+ */
 uint8_t BCDFormatToDecimalFormat( uint8_t numberBCD )
 {
     uint8_t valueDecimal;
-    /*RxData[2] = 0x34  ->  0011 0100    ->  RxData[2] = ( (0011 0100 >> 4) * 10)    ->     0000 0011 * 10  ->  0001 1110
 
-    (RxData[2] & 0xF)   ->  0011 0100   ->  0100*/
     valueDecimal = ( (numberBCD >> 4u) * 10u ) + (numberBCD & 0xFu);
 
     return valueDecimal;
