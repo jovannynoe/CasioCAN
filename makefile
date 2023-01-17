@@ -110,7 +110,7 @@ debug :
 #---Genrete project documentation with doxygen-----------------------------------------------------
 docs :
 	doxygen .doxyfile
-	firefox Build/doxygen/html/index.html
+	firedragon Build/doxygen/html/index.html
 
 #---Run Static analysis
 lint :

@@ -8,7 +8,7 @@
  * have the others states called change time, change date and change alarm that this states are to change the values through the
  * structure created in the serial header file, since these values are processed in this another file. 
  * 
- * @note    We need take in count that this proyect just show the alarm but haven't a alert when the alarm is active, it just 
+ * @note    We need take in count that this proyect just show the alarm but haven't an alert when the alarm is active, it just 
  *          keep showing the alarm.
  * 
  */
@@ -40,9 +40,24 @@
 
 extern void initialise_monitor_handles(void);
 
+/**
+ * @brief  Variable for RTC Handle Structure definition
+ */
 static RTC_HandleTypeDef hrtc;
+
+/**
+ * @brief  Variable for RTC Time structure definition
+ */
 static RTC_TimeTypeDef sTime = {0};
+
+/**
+ * @brief  Variable for RTC Date structure definition
+ */
 static RTC_DateTypeDef sDate = {0};
+
+/**
+ * @brief  Variable for RTC Alarm structure definition
+ */
 static RTC_AlarmTypeDef sAlarm = {0};
 
 /**
