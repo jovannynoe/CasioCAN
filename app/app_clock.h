@@ -13,7 +13,7 @@
 #define APP_CLOCK_H__
 
 /**
-  * @brief   Brief structure description
+  * @brief   Structure to use this words in place of number to more explicit
   */
 typedef enum
 {
