@@ -55,5 +55,7 @@ extern FDCAN_FilterTypeDef CANFilter;
 
 extern void Serial_Init( void );
 extern void Serial_Task( void );
+extern uint8_t BCDFormatToDecimalFormat( uint8_t numberBCD );
+extern void HAL_FDCAN_RxFifo0Callback( FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs );
 
 #endif

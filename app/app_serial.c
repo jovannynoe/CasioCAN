@@ -74,13 +74,25 @@
 /**
   @} */
 
+/**
+ * @brief  Variable for FDCAN Handle Structure definition
+ */
 FDCAN_HandleTypeDef CANHandler;
-FDCAN_TxHeaderTypeDef CANTxHeader;
-FDCAN_FilterTypeDef CANFilter;
-APP_MsgTypeDef TimeCAN;
 
-uint8_t BCDFormatToDecimalFormat( uint8_t numberBCD );
-void HAL_FDCAN_RxFifo0Callback( FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs );
+/**
+ * @brief  Variable for FDCAN Tx header Structure definition
+ */
+FDCAN_TxHeaderTypeDef CANTxHeader;
+
+/**
+ * @brief  Variable for FDCAN filter structure definition
+ */
+FDCAN_FilterTypeDef CANFilter;
+
+/**
+ * @brief  Variable to can save the time, date an alarm through the structure
+ */
+APP_MsgTypeDef TimeCAN;
 
 /**
  * @brief  Global variable to save the values from the CANdo
