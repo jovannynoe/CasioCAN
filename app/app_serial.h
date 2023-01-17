@@ -1,7 +1,7 @@
 /**
- * @file    app_clock.h
+ * @file    app_serial.h
  * @author  Jovanny Noé Casillas Franco
- * @brief   **Header file of Clock**
+ * @brief   **Header file of Serial**
  *
  * The Clock header file is to make the structures and we use in differents files, also, to declarate the functions prototypes
  * that we are using in the source file. 
