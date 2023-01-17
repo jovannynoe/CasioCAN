@@ -55,7 +55,7 @@ extern FDCAN_HandleTypeDef CANHandler;
 extern FDCAN_TxHeaderTypeDef CANTxHeader;
 extern FDCAN_FilterTypeDef CANFilter;
 
-void Serial_Init( void );
-void Serial_Task( void );
+extern void Serial_Init( void );
+extern void Serial_Task( void );
 
 #endif
