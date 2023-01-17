@@ -12,7 +12,6 @@
 #ifndef APP_SERIAL_H__
 #define APP_SERIAL_H__
 
-
 /**
   * @brief   Structure to save the values to time, date and alarm
   */
@@ -37,7 +36,6 @@ typedef struct _APP_TmTypeDef
   uint32_t tm_isdst;      /*!< Used to save the daylight saving time */            
         
 }APP_TmTypeDef;
-
 
 /**
   * @brief   Structure to know the type of the message and we use another structure inside
