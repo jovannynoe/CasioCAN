@@ -36,7 +36,14 @@ static void Heart_Beat( void );
 static void Dog_Init( void );
 static void Peth_The_Dog( void );
 
+/**
+ * @brief  Variable for WWDG Handle Structure definition
+ */
 WWDG_HandleTypeDef hwwdg;
+
+/**
+ * @brief  Variable for GPIO Init structure definition
+ */
 GPIO_InitTypeDef GPIO_InitStruct;
 
 /**
