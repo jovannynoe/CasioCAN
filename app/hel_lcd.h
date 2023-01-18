@@ -31,8 +31,8 @@ typedef struct
     GPIO_TypeDef        *BklPort; /*port where the pin to control the LCD backlight is*/
 
     uint32_t            BklPin;  /*pin to control the LCD backlight pin */
-    //agregar más elementos si se requieren
-} LCD_HandleTypeDef;
+
+}LCD_HandleTypeDef;
 
 extern void HEL_LCD_Init( LCD_HandleTypeDef *hlcd );
 extern void HEL_LCD_MspInit( LCD_HandleTypeDef *hlcd );

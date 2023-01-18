@@ -38,26 +38,26 @@
 
 void HEL_LCD_Init( LCD_HandleTypeDef *hlcd )
 {
-    MOD_LCD_MspInit( hlcd );
+    HEL_LCD_MspInit( hlcd );
 
     HAL_GPIO_WritePin( hlcd->CsPort, hlcd->CsPin, SET );        //CS = 1
     HAL_GPIO_WritePin( hlcd->RstPort, hlcd->RstPin, RESET );    //RST = 0
     HAL_Delay(2);
     HAL_GPIO_WritePin( hlcd->RstPort, hlcd->RstPin, SET );      //RST = 1
     HAL_Delay(20);
-    MOD_LCD_Command( hlcd, WAKE_UP );
+    HEL_LCD_Command( hlcd, WAKE_UP );
     HAL_Delay(2);
-    MOD_LCD_Command( hlcd, WAKE_UP );
-    MOD_LCD_Command( hlcd, WAKE_UP );
-    MOD_LCD_Command( hlcd, FUNCTION_SET );
-    MOD_LCD_Command( hlcd, INTERNAL_OSC_FREQUENCY );
-    MOD_LCD_Command( hlcd, POWER_CONTROL );
-    MOD_LCD_Command( hlcd, FOLLOWER_CONTROL );
+    HEL_LCD_Command( hlcd, WAKE_UP );
+    HEL_LCD_Command( hlcd, WAKE_UP );
+    HEL_LCD_Command( hlcd, FUNCTION_SET );
+    HEL_LCD_Command( hlcd, INTERNAL_OSC_FREQUENCY );
+    HEL_LCD_Command( hlcd, POWER_CONTROL );
+    HEL_LCD_Command( hlcd, FOLLOWER_CONTROL );
     HAL_Delay(200);
-    MOD_LCD_Command( hlcd, CONTRAST );
-    MOD_LCD_Command( hlcd, DISPLAY_ON );
-    MOD_LCD_Command( hlcd, ENTRY_MODE );
-    MOD_LCD_Command( hlcd, CLEAR );
+    HEL_LCD_Command( hlcd, CONTRAST );
+    HEL_LCD_Command( hlcd, DISPLAY_ON );
+    HEL_LCD_Command( hlcd, ENTRY_MODE );
+    HEL_LCD_Command( hlcd, CLEAR );
     HAL_Delay(1);
 }
 
@@ -88,7 +88,7 @@ void HEL_LCD_String( LCD_HandleTypeDef *hlcd, char *str )
 {
     while ( *str != '\0' )
     {
-        MOD_LCD_Data( hlcd, *str );
+        HEL_LCD_Data( hlcd, *str );
         str++;
     }
 }
@@ -106,7 +106,7 @@ void HEL_LCD_SetCursor( LCD_HandleTypeDef *hlcd, uint8_t row, uint8_t col )
         ddRamAddress = rowOne[col];
     }
 
-    MOD_LCD_Command( hlcd, 0x80 | ddRamAddress );
+    HEL_LCD_Command( hlcd, 0x80 | ddRamAddress );
     /*Row[0:1] & Col[0:15]*/   
 }
 
