@@ -148,7 +148,7 @@ void HAL_SPI_MspInit( SPI_HandleTypeDef *hspi )
     __GPIOB_CLK_ENABLE();
     __SPI1_CLK_ENABLE();
 
-    GPIO_InitStruct.Pin = GPIO_PIN_13 | GPIO_PIN_11;  /*SCK | MOSI*/
+    GPIO_InitStruct.Pin = GPIO_PIN_11 | GPIO_PIN_13;  /*SCK | MOSI*/
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
@@ -156,7 +156,7 @@ void HAL_SPI_MspInit( SPI_HandleTypeDef *hspi )
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 }
 
-void MOD_LCD_MspInit( LCD_HandleTypeDef *hlcd )
+void HEL_LCD_MspInit( LCD_HandleTypeDef *hlcd )
 {
     GPIO_InitTypeDef GPIO_InitStruct;
 
@@ -170,7 +170,7 @@ void MOD_LCD_MspInit( LCD_HandleTypeDef *hlcd )
     /*Inicializamos pines con los parametros anteriores*/
     HAL_GPIO_Init( GPIOB, &GPIO_InitStruct );
 
-    GPIO_InitStruct.Pin = GPIO_PIN_9 | GPIO_PIN_8; /*RS | RST*/
+    GPIO_InitStruct.Pin = GPIO_PIN_12 | GPIO_PIN_9 | GPIO_PIN_8; /*BKL | RS | RST*/
     GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;    /*Salida tipo push-pull*/
     GPIO_InitStruct.Pull  = GPIO_NOPULL;    /*Pin sin pull-up ni pull-down*/
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;    /*Pin a baja velocidad*/

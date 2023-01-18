@@ -33,7 +33,8 @@ void SPI_Init( void )
 
 void LCD_Test( void )
 {
-
+    HEL_LCD_SetCursor( &hlcd, 0, 0 ); 
+    HEL_LCD_Data( &hlcd, 'H' );
 }
 
 
