@@ -12,6 +12,7 @@
 #define BSP_H_
 
     #include "stm32g0xx.h"
+    #include "hel_lcd.h"
     #include <stdint.h>
     
 #endif

@@ -140,3 +140,32 @@ void HAL_RTC_MspInit( RTC_HandleTypeDef* hrtc )
     __HAL_RCC_RTC_ENABLE();
     __HAL_RCC_RTCAPB_CLK_ENABLE();
 }
+
+void HAL_SPI_MspInit( SPI_HandleTypeDef *hspi )
+{
+    GPIO_InitTypeDef GPIO_InitStruct;
+
+    __GPIOB_CLK_ENABLE();
+    __SPI1_CLK_ENABLE();
+
+    GPIO_InitStruct.Pin = GPIO_PIN_11 | GPIO_PIN_13;  /*SCK | MOSI*/
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF0_SPI1;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+}
+
+void MOD_LCD_MspInit( LCD_HandleTypeDef *hlcd )
+{
+    GPIO_InitTypeDef GPIO_InitStruct;
+
+    __GPIOB_CLK_ENABLE();   /*Habilitamos reloj del puerto B*/
+
+    GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2; /*CS | RS | RST*/
+    GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;    /*Salida tipo push-pull*/
+    GPIO_InitStruct.Pull  = GPIO_NOPULL;    /*Pin sin pull-up ni pull-down*/
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;    /*Pin a baja velocidad*/
+    /*Inicializamos pines con los parametros anteriores*/
+    HAL_GPIO_Init( GPIOB, &GPIO_InitStruct );
+}

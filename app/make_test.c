@@ -1,6 +1,5 @@
 #include "app_bsp.h"
 #include "make_test.h"
-#include "hel_lcd.h"
 
 LCD_HandleTypeDef hlcd;
 SPI_HandleTypeDef SpiHandle;
