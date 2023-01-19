@@ -15,7 +15,6 @@
 #include "app_bsp.h"
 #include "app_serial.h"
 #include "app_clock.h"
-#include "make_test.h"
 
 /** 
   * @defgroup WWDG Defines to configurate WWDG
@@ -71,15 +70,13 @@ static uint32_t tickstartPethTheDog;
 int main( void )
 {
     HAL_Init();
-    SPI_Init();
-    /*Heart_Init();
+    Heart_Init();
     Dog_Init();
     Clock_Init();
-    Serial_Init();*/
+    Serial_Init();
 
     while(1){
         
-        LCD_Test();
         /*Serial_Task();
         Clock_Task();
         Heart_Beat();
