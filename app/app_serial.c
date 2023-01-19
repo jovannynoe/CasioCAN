@@ -92,7 +92,7 @@ FDCAN_FilterTypeDef CANFilter;
 /**
  * @brief  Variable to can save the time, date an alarm through the structure
  */
-APP_MsgTypeDef TimeCAN;
+APP_MsgTypeDef SerialMsg;
 
 /**
  * @brief  Global variable to save the values from the CANdo
@@ -376,24 +376,24 @@ void Serial_Task( void )
         switch (stateOk)
         {
         case STATE_TIME:
-            TimeCAN.tm.tm_hour = RxData[2];
-            TimeCAN.tm.tm_min = RxData[3];
-            TimeCAN.tm.tm_sec = RxData[4];
-            TimeCAN.msg = STATE_TIME;
+            SerialMsg.tm.tm_hour = RxData[2];
+            SerialMsg.tm.tm_min = RxData[3];
+            SerialMsg.tm.tm_sec = RxData[4];
+            SerialMsg.msg = STATE_TIME;
             break;
         
         case STATE_DATE:
-            TimeCAN.tm.tm_mday = RxData[2];
-            TimeCAN.tm.tm_mon = RxData[3];
-            TimeCAN.tm.tm_year = year;
+            SerialMsg.tm.tm_mday = RxData[2];
+            SerialMsg.tm.tm_mon = RxData[3];
+            SerialMsg.tm.tm_year = year;
             
-            TimeCAN.msg = STATE_DATE;
+            SerialMsg.msg = STATE_DATE;
             break;
 
         case STATE_ALARM:
-            TimeCAN.tm.tm_hour = RxData[2];
-            TimeCAN.tm.tm_min = RxData[3];
-            TimeCAN.msg = STATE_ALARM;
+            SerialMsg.tm.tm_hour = RxData[2];
+            SerialMsg.tm.tm_min = RxData[3];
+            SerialMsg.msg = STATE_ALARM;
             break;
         
         default:

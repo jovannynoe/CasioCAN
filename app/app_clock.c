@@ -149,18 +149,18 @@ void Clock_Task( void ){
             tickstartShowTime = HAL_GetTick();
             stateClock = STATE_SHOW_TIME;
         }
-        else if( TimeCAN.msg != (uint8_t)SERIAL_MSG_NONE ){
-            if( TimeCAN.msg == (uint8_t)SERIAL_MSG_TIME ){
+        else if( SerialMsg.msg != (uint8_t)SERIAL_MSG_NONE ){
+            if( SerialMsg.msg == (uint8_t)SERIAL_MSG_TIME ){
                 stateClock = STATE_CHANGE_TIME;
-                TimeCAN.msg = SERIAL_MSG_NONE;
+                SerialMsg.msg = SERIAL_MSG_NONE;
             }
-            else if( TimeCAN.msg == (uint8_t)SERIAL_MSG_DATE ){
+            else if( SerialMsg.msg == (uint8_t)SERIAL_MSG_DATE ){
                 stateClock = STATE_CHANGE_DATE;
-                TimeCAN.msg = SERIAL_MSG_NONE;
+                SerialMsg.msg = SERIAL_MSG_NONE;
             }
-            else if( TimeCAN.msg == (uint8_t)SERIAL_MSG_ALARM ){
+            else if( SerialMsg.msg == (uint8_t)SERIAL_MSG_ALARM ){
                 stateClock = STATE_CHANGE_ALARM;
-                TimeCAN.msg = SERIAL_MSG_NONE;
+                SerialMsg.msg = SERIAL_MSG_NONE;
             }
             else{ 
             }
@@ -194,7 +194,7 @@ void Clock_Task( void ){
     case STATE_SHOW_ALARM:
         HAL_RTC_GetAlarm( &hrtc, &sAlarm, RTC_ALARM_A, RTC_FORMAT_BIN );
 
-        (void)printf( "Alarm: %ld:%ld\n\r", TimeCAN.tm.tm_hour, TimeCAN.tm.tm_min );
+        (void)printf( "Alarm: %ld:%ld\n\r", SerialMsg.tm.tm_hour, SerialMsg.tm.tm_min );
         (void)printf( "\n\r" );
         
         stateClock = STATE_IDLE;
@@ -202,20 +202,20 @@ void Clock_Task( void ){
 
     case STATE_CHANGE_TIME:
 
-        sTime.Hours = TimeCAN.tm.tm_hour;
-        sTime.Minutes = TimeCAN.tm.tm_min;
-        sTime.Seconds = TimeCAN.tm.tm_sec;
+        sTime.Hours = SerialMsg.tm.tm_hour;
+        sTime.Minutes = SerialMsg.tm.tm_min;
+        sTime.Seconds = SerialMsg.tm.tm_sec;
         HAL_RTC_SetTime( &hrtc, &sTime, RTC_FORMAT_BIN );
 
         stateClock = STATE_SHOW_TIME;
         break;
 
     case STATE_CHANGE_DATE:
-        yearMSB = (TimeCAN.tm.tm_year / 100u);
+        yearMSB = (SerialMsg.tm.tm_year / 100u);
 
-        sDate.Date = TimeCAN.tm.tm_mday;
-        sDate.Month = TimeCAN.tm.tm_mon; 
-        sDate.Year = (TimeCAN.tm.tm_year % 100u);
+        sDate.Date = SerialMsg.tm.tm_mday;
+        sDate.Month = SerialMsg.tm.tm_mon; 
+        sDate.Year = (SerialMsg.tm.tm_year % 100u);
         HAL_RTC_SetDate( &hrtc, &sDate, RTC_FORMAT_BIN );
 
         stateClock = STATE_SHOW_DATE;
@@ -223,8 +223,8 @@ void Clock_Task( void ){
 
     case STATE_CHANGE_ALARM:
 
-        sAlarm.AlarmTime.Hours = TimeCAN.tm.tm_hour;
-        sAlarm.AlarmTime.Minutes = TimeCAN.tm.tm_min;
+        sAlarm.AlarmTime.Hours = SerialMsg.tm.tm_hour;
+        sAlarm.AlarmTime.Minutes = SerialMsg.tm.tm_min;
         HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BIN );
 
         stateClock = STATE_SHOW_ALARM;
