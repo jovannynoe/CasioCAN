@@ -60,7 +60,14 @@ static RTC_DateTypeDef sDate = {0};
  */
 static RTC_AlarmTypeDef sAlarm = {0};
 
+/**
+ * @brief  Variable for LCD Handle Structure definition
+ */
 LCD_HandleTypeDef hlcd;
+
+/**
+ * @brief  Variable for SPI Handle Structure definition
+ */
 static SPI_HandleTypeDef SpiHandle;
 
 /**
@@ -235,7 +242,7 @@ void Clock_Task( void ){
     }
 }
 
-void SPI_Init( void )
+void LCD_Init( void )
 {
     SpiHandle.Instance                  = SPI2;
     SpiHandle.Init.Mode                 = SPI_MODE_MASTER;
