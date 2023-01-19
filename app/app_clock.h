@@ -34,6 +34,5 @@ extern GPIO_InitTypeDef GPIO_InitStruct;
 
 extern void Clock_Init( void );
 extern void Clock_Task( void );
-extern void LCD_Init( void );
 
 #endif
