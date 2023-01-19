@@ -15,7 +15,6 @@
 #include "app_bsp.h"
 #include "app_clock.h"
 #include "app_serial.h"
-#include <stdio.h>  /* cppcheck-suppress misra-c2012-21.6 ; The library is only for testing but it wont be included in the last part */
 
 /** 
   * @defgroup RTC Defines to configurate RTC
@@ -38,10 +37,8 @@
 /**
   @} */
 
-extern void initialise_monitor_handles(void);
-
 /**
- * @brief  Variable to can save the time, date an alarm through the structure
+ * @brief  Variable for APP MSG Structure definition
  */
 APP_MsgTypeDef ClockMsg;
 
@@ -86,10 +83,6 @@ static uint32_t tickstartShowTime;
  * @retval  None
  */
 void Clock_Init( void ){
-
-    LCD_Init();
-
-    initialise_monitor_handles();
 
     hrtc.Instance = RTC;
     hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
@@ -177,8 +170,10 @@ void Clock_Task( void ){
     case STATE_SHOW_TIME:
         HAL_RTC_GetTime( &hrtc, &sTime, RTC_FORMAT_BIN );
 
-        (void)printf( "Time %d:%d:%d\n\r", sTime.Hours, sTime.Minutes, sTime.Seconds );
-        
+        ClockMsg.msg = SERIAL_MSG_TIME;
+        ClockMsg.tm.tm_hour = sTime.Hours;
+        ClockMsg.tm.tm_min = sTime.Minutes;
+        ClockMsg.tm.tm_sec = sTime.Seconds;
 
         stateClock = STATE_SHOW_DATE;
         break;
@@ -186,21 +181,20 @@ void Clock_Task( void ){
     case STATE_SHOW_DATE:
         HAL_RTC_GetDate( &hrtc, &sDate, RTC_FORMAT_BIN );
 
-        if( sDate.Year <= 9u ){
-            (void)printf( "Date: %d/%d/%d0%d\n\r", sDate.Date, sDate.Month, yearMSB, sDate.Year );  
-        }
-        else{
-            (void)printf( "Date: %d/%d/%d%d\n\r", sDate.Date, sDate.Month, yearMSB, sDate.Year );
-        }
-
+        ClockMsg.msg = SERIAL_MSG_DATE;
+        ClockMsg.tm.tm_mday = sDate.Date;
+        ClockMsg.tm.tm_mon = sDate.Month;
+        ClockMsg.tm.tm_year = (yearMSB * 100u) + sDate.Year;
+        
         stateClock = STATE_SHOW_ALARM;
         break;
 
     case STATE_SHOW_ALARM:
         HAL_RTC_GetAlarm( &hrtc, &sAlarm, RTC_ALARM_A, RTC_FORMAT_BIN );
 
-        (void)printf( "Alarm: %ld:%ld\n\r", SerialMsg.tm.tm_hour, SerialMsg.tm.tm_min );
-        (void)printf( "\n\r" );
+        ClockMsg.msg = SERIAL_MSG_ALARM;
+        ClockMsg.tm.tm_hour = sAlarm.AlarmTime.Hours;
+        ClockMsg.tm.tm_min = sAlarm.AlarmTime.Minutes;
         
         stateClock = STATE_IDLE;
         break;

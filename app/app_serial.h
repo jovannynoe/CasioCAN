@@ -48,6 +48,7 @@ typedef struct _APP_MsgTypeDef
 
 }APP_MsgTypeDef;
 
+extern APP_MsgTypeDef ClockMsg;
 extern APP_MsgTypeDef SerialMsg;
 extern FDCAN_HandleTypeDef CANHandler;
 extern FDCAN_TxHeaderTypeDef CANTxHeader;
