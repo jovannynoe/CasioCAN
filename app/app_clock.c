@@ -41,6 +41,11 @@
 extern void initialise_monitor_handles(void);
 
 /**
+ * @brief  Variable to can save the time, date an alarm through the structure
+ */
+APP_MsgTypeDef ClockMsg;
+
+/**
  * @brief  Variable for RTC Handle Structure definition
  */
 static RTC_HandleTypeDef hrtc;
