@@ -71,19 +71,19 @@ static uint32_t tickstartPethTheDog;
 int main( void )
 {
     HAL_Init();
-    /*Heart_Init();
-    Dog_Init();*/
-    Display_Init();
-    Clock_Init();
+    Heart_Init();
     Serial_Init();
+    Clock_Init();
+    Display_Init();
+    //Dog_Init();
 
     while(1){
         
         Serial_Task();
         Clock_Task();
         Display_Task();
-        /*Heart_Beat();
-        Peth_The_Dog();*/
+        Heart_Beat();
+        Peth_The_Dog();
     }
 }
 

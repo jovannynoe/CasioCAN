@@ -11,6 +11,7 @@
 #define CLEAR 0x01u 
 
 static void monthNumberToMonthWord( void );
+static void weekDayNumberToWeekDayWord( void );
 
 /**
  * @brief  Variable for LCD Handle Structure definition
@@ -23,6 +24,7 @@ LCD_HandleTypeDef hlcd;
 static uint8_t stateDisplay;
 
 static char ClockMsgtm_mon[4];
+static char ClockMsgtm_wday[3];
 
 void Display_Init( void )
 {
@@ -72,7 +74,7 @@ void Display_Task( void )
 
     case STATE_PRINT_TIME:
 
-        if( (ClockMsg.tm.tm_hour == 0u) && (ClockMsg.tm.tm_min == 0u) && (ClockMsg.tm.tm_sec == 0u) ){
+        if( ClockMsg.tm.tm_sec == 0u ){
             HEL_LCD_Command( &hlcd, CLEAR );
         }
 
@@ -97,6 +99,7 @@ void Display_Task( void )
 
     case STATE_PRINT_DATE:
         monthNumberToMonthWord();
+        weekDayNumberToWeekDayWord();
 
         (void)itoa( ClockMsg.tm.tm_mday, ClockMsgtm_mday, 10 );
         (void)itoa( ClockMsg.tm.tm_year, ClockMsgtm_year, 10 );
@@ -109,6 +112,8 @@ void Display_Task( void )
         HEL_LCD_String( &hlcd, ClockMsgtm_mday );
         HEL_LCD_SetCursor( &hlcd, 0, 8 );
         HEL_LCD_String( &hlcd, ClockMsgtm_year );
+        HEL_LCD_SetCursor( &hlcd, 0, 13 );
+        HEL_LCD_String( &hlcd, ClockMsgtm_wday );
 
         stateDisplay = STATE_IDLE;
         break;
@@ -193,6 +198,59 @@ void monthNumberToMonthWord( void ){
     case 12:
        for( i = 0u; i < 3u; i++ ){
             ClockMsgtm_mon[i] = months[i+44u];
+        }
+        break;
+
+    default:
+        break;
+    }
+}
+
+void weekDayNumberToWeekDayWord( void ){
+    static uint8_t i;
+    const uint8_t weekDays[21] = "Mo Tu We Th Fr Sa Su";
+
+    switch (ClockMsg.tm.tm_wday)
+    {
+    case RTC_WEEKDAY_MONDAY:
+        for( i = 0u; i < 2u; i++ ){
+            ClockMsgtm_wday[i] = weekDays[i];
+        }
+        break;
+
+    case RTC_WEEKDAY_TUESDAY:
+        for( i = 0u; i < 2u; i++ ){
+            ClockMsgtm_wday[i] = weekDays[i+3u];
+        }
+        break;
+
+    case RTC_WEEKDAY_WEDNESDAY:
+        for( i = 0u; i < 2u; i++ ){
+            ClockMsgtm_wday[i] = weekDays[i+6u];
+        }
+        break;
+
+    case RTC_WEEKDAY_THURSDAY:
+        for( i = 0u; i < 2u; i++ ){
+            ClockMsgtm_wday[i] = weekDays[i+9u];
+        }
+        break;
+
+    case RTC_WEEKDAY_FRIDAY:
+        for( i = 0u; i < 2u; i++ ){
+            ClockMsgtm_wday[i] = weekDays[i+12u];
+        }
+        break;
+
+    case RTC_WEEKDAY_SATURDAY:
+        for( i = 0u; i < 2u; i++ ){
+            ClockMsgtm_wday[i] = weekDays[i+15u];
+        }
+        break;
+
+    case RTC_WEEKDAY_SUNDAY:
+        for( i = 0u; i < 2u; i++ ){
+            ClockMsgtm_wday[i] = weekDays[i+18u];
         }
         break;
 

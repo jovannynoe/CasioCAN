@@ -36,7 +36,7 @@ void HEL_LCD_Init( LCD_HandleTypeDef *hlcd )
     HEL_LCD_Command( hlcd, POWER_CONTROL );
     HEL_LCD_Command( hlcd, FOLLOWER_CONTROL );
     HAL_Delay(200);
-    HEL_LCD_Command( hlcd, CONTRAST );
+    HEL_LCD_Contrast( hlcd, 15 );
     HEL_LCD_Command( hlcd, DISPLAY_ON );
     HEL_LCD_Command( hlcd, ENTRY_MODE );
     HEL_LCD_Command( hlcd, CLEAR );
