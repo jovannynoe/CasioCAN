@@ -115,5 +115,5 @@ void HEL_LCD_Backlight( LCD_HandleTypeDef *hlcd, uint8_t state )
 
 void HEL_LCD_Contrast( LCD_HandleTypeDef *hlcd, uint8_t contrast )
 {
-
+    HEL_LCD_Command( hlcd, CONTRAST | contrast );  
 }
