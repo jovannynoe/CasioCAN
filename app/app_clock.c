@@ -17,10 +17,17 @@
 #include "app_serial.h"
 
 /** 
+  * @defgroup Numbers Define of unsigned numbers
+  @{ */
+#define ONE_HUNDRED 100u    /*!< Used to divide the year in two parts */   
+/**
+  @} */
+
+/** 
   * @defgroup RTC Defines to configurate RTC
   @{ */
-#define RTC_ASYNCH_PREDIV 0x7F  /*!< Is the value to configurate the RTC */
-#define RTC_SYNCH_PREDIV 0x0F9  /*!< Is the value to configurate the RTC */
+#define RTC_ASYNCH_PREDIV 0x7F  /*!< Specifies the RTC Asynchronous Predivider value */
+#define RTC_SYNCH_PREDIV 0x0F9  /*!< Specifies the RTC Synchronous Predivider value */
 /**
   @} */
 
@@ -185,7 +192,7 @@ void Clock_Task( void ){
         ClockMsg.tm.tm_mday = sDate.Date;
         ClockMsg.tm.tm_mon = sDate.Month;
         ClockMsg.tm.tm_wday = sDate.WeekDay;
-        ClockMsg.tm.tm_year = (yearMSB * 100u) + sDate.Year;
+        ClockMsg.tm.tm_year = (yearMSB * ONE_HUNDRED) + sDate.Year;
         
         stateClock = STATE_SHOW_ALARM;
         break;
@@ -211,11 +218,11 @@ void Clock_Task( void ){
         break;
 
     case STATE_CHANGE_DATE:
-        yearMSB = (SerialMsg.tm.tm_year / 100u);
+        yearMSB = (SerialMsg.tm.tm_year / ONE_HUNDRED);
 
         sDate.Date = SerialMsg.tm.tm_mday;
         sDate.Month = SerialMsg.tm.tm_mon; 
-        sDate.Year = (SerialMsg.tm.tm_year % 100u);
+        sDate.Year = (SerialMsg.tm.tm_year % ONE_HUNDRED);
         HAL_RTC_SetDate( &hrtc, &sDate, RTC_FORMAT_BIN );
 
         stateClock = STATE_SHOW_DATE;
