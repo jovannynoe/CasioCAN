@@ -1,5 +1,12 @@
 #include "app_bsp.h"
 #include "app_display.h"
+#include "app_serial.h"
+#include "app_clock.h"
+#include <stdlib.h>
+
+#define STATE_IDLE 0
+#define STATE_PRINT_TIME 1
+#define STATE_PRINT_DATE 2
 
 /**
  * @brief  Variable for LCD Handle Structure definition
@@ -10,6 +17,10 @@ LCD_HandleTypeDef hlcd;
  * @brief  Variable for SPI Handle Structure definition
  */
 static SPI_HandleTypeDef SpiHandle;
+
+static uint8_t stateDisplay;
+
+static char ClockMsgtm_mon[4];
 
 void Display_Init( void )
 {
@@ -36,9 +47,145 @@ void Display_Init( void )
     hlcd.RstPort = GPIOC;
     hlcd.SpiHandler = &SpiHandle;
     HEL_LCD_Init( &hlcd );
+
+    stateDisplay = STATE_IDLE;
 }
 
 void Display_Task( void )
 {
+    uint8_t stateIDLE;
+    char ClockMsgtm_hour[3];
+    char ClockMsgtm_min[3];
+    char ClockMsgtm_sec[3]; 
+    char ClockMsgtm_mday[3];
+    char ClockMsgtm_year[5];
 
+    switch (stateDisplay)
+    {
+    case STATE_IDLE:
+
+        stateDisplay = STATE_PRINT_TIME;
+        break;
+
+    case STATE_PRINT_TIME:
+        itoa( ClockMsg.tm.tm_hour, ClockMsgtm_hour, 10 );
+        itoa( ClockMsg.tm.tm_min, ClockMsgtm_min, 10 );
+        itoa( ClockMsg.tm.tm_sec, ClockMsgtm_sec, 10 );
+
+        HEL_LCD_SetCursor( &hlcd, 1, 3 );
+        HEL_LCD_String( &hlcd, ClockMsgtm_hour ); 
+        HEL_LCD_SetCursor( &hlcd, 1, 5 );
+        HEL_LCD_Data( &hlcd, ':' );
+        HEL_LCD_SetCursor( &hlcd, 1, 6 );
+        HEL_LCD_String( &hlcd, ClockMsgtm_min );
+        HEL_LCD_SetCursor( &hlcd, 1, 8 );
+        HEL_LCD_Data( &hlcd, ':' );
+        HEL_LCD_SetCursor( &hlcd, 1, 9 );
+        HEL_LCD_String( &hlcd, ClockMsgtm_sec );
+
+        stateDisplay = STATE_PRINT_DATE;
+        
+        break;
+
+    case STATE_PRINT_DATE:
+        monthNumberToMonthWord();
+
+        itoa( ClockMsg.tm.tm_mday, ClockMsgtm_mday, 10 );
+        itoa( ClockMsg.tm.tm_year, ClockMsgtm_year, 10 );
+
+        HEL_LCD_SetCursor( &hlcd, 0, 1 );
+        HEL_LCD_String( &hlcd, ClockMsgtm_mon );
+        HEL_LCD_SetCursor( &hlcd, 0, 4 );
+        HEL_LCD_Data( &hlcd, ',' );
+        HEL_LCD_SetCursor( &hlcd, 0, 5 );
+        HEL_LCD_String( &hlcd, ClockMsgtm_mday );
+        HEL_LCD_SetCursor( &hlcd, 0, 8 );
+        HEL_LCD_String( &hlcd, ClockMsgtm_year );
+
+        stateDisplay = STATE_IDLE;
+        break;
+    
+    default:
+        break;
+    }
+}
+
+void monthNumberToMonthWord( void ){
+    static uint8_t i;
+    const uint8_t months[47] = "JAN FEB MAR APR MAY JUN JUL AUG SEP OCT NOV DEC";
+
+    switch (ClockMsg.tm.tm_mon)
+    {
+    case 1:
+        for( i = 0; i < 3; i++ ){
+            ClockMsgtm_mon[i] = months[i];
+        }
+        break;
+
+    case 2:
+        for( i = 0; i < 3; i++ ){
+            ClockMsgtm_mon[i] = months[i+4];
+        }
+        break;
+
+    case 3:
+        for( i = 0; i < 3; i++ ){
+            ClockMsgtm_mon[i] = months[i+8];
+        }
+        break;
+
+    case 4:
+        for( i = 0; i < 3; i++ ){
+            ClockMsgtm_mon[i] = months[i+12];
+        }
+        break;
+
+    case 5:
+        for( i = 0; i < 3; i++ ){
+            ClockMsgtm_mon[i] = months[i+16];
+        }
+        break;
+
+    case 6:
+        for( i = 0; i < 3; i++ ){
+            ClockMsgtm_mon[i] = months[i+20];
+        }
+        break;
+
+    case 7:
+        for( i = 0; i < 3; i++ ){
+            ClockMsgtm_mon[i] = months[i+24];
+        }
+        break;
+
+    case 8:
+        for( i = 0; i < 3; i++ ){
+            ClockMsgtm_mon[i] = months[i+28];
+        }
+        break;
+
+    case 9:
+        for( i = 0; i < 3; i++ ){
+            ClockMsgtm_mon[i] = months[i+32];
+        }
+        break;
+
+    case 10:
+        for( i = 0; i < 3; i++ ){
+            ClockMsgtm_mon[i] = months[i+36];
+        }
+        break;
+
+    case 11:
+        for( i = 0; i < 3; i++ ){
+            ClockMsgtm_mon[i] = months[i+40];
+        }
+        break;
+
+    case 12:
+       for( i = 0; i < 3; i++ ){
+            ClockMsgtm_mon[i] = months[i+44];
+        }
+        break;
+    }
 }

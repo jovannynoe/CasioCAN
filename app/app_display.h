@@ -3,5 +3,6 @@
 
 extern void Display_Init( void );
 extern void Display_Task( void );
+extern void monthNumberToMonthWord( void );
 
 #endif

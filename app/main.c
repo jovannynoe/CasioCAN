@@ -15,6 +15,7 @@
 #include "app_bsp.h"
 #include "app_serial.h"
 #include "app_clock.h"
+#include "app_display.h"
 
 /** 
   * @defgroup WWDG Defines to configurate WWDG
@@ -72,15 +73,17 @@ int main( void )
     HAL_Init();
     Heart_Init();
     Dog_Init();
+    Display_Init();
     Clock_Init();
     Serial_Init();
 
     while(1){
         
-        /*Serial_Task();
+        Serial_Task();
         Clock_Task();
+        Display_Task();
         Heart_Beat();
-        Peth_The_Dog();*/
+        Peth_The_Dog();
     }
 }
 
