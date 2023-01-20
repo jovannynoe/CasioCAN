@@ -184,6 +184,7 @@ void Clock_Task( void ){
         ClockMsg.msg = SERIAL_MSG_DATE;
         ClockMsg.tm.tm_mday = sDate.Date;
         ClockMsg.tm.tm_mon = sDate.Month;
+        ClockMsg.tm.tm_wday = sDate.WeekDay;
         ClockMsg.tm.tm_year = (yearMSB * 100u) + sDate.Year;
         
         stateClock = STATE_SHOW_ALARM;
@@ -192,9 +193,9 @@ void Clock_Task( void ){
     case STATE_SHOW_ALARM:
         HAL_RTC_GetAlarm( &hrtc, &sAlarm, RTC_ALARM_A, RTC_FORMAT_BIN );
 
-        ClockMsg.msg = SERIAL_MSG_ALARM;
+        /*ClockMsg.msg = SERIAL_MSG_ALARM;
         ClockMsg.tm.tm_hour = sAlarm.AlarmTime.Hours;
-        ClockMsg.tm.tm_min = sAlarm.AlarmTime.Minutes;
+        ClockMsg.tm.tm_min = sAlarm.AlarmTime.Minutes;*/
         
         stateClock = STATE_IDLE;
         break;
