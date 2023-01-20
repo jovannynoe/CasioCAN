@@ -8,22 +8,26 @@
 #define STATE_PRINT_TIME 1
 #define STATE_PRINT_DATE 2
 
+#define CLEAR 0x01u 
+
+static void monthNumberToMonthWord( void );
+
 /**
  * @brief  Variable for LCD Handle Structure definition
  */
 LCD_HandleTypeDef hlcd;
 
 /**
- * @brief  Variable for SPI Handle Structure definition
+ * @brief  Variable
  */
-static SPI_HandleTypeDef SpiHandle;
-
 static uint8_t stateDisplay;
 
 static char ClockMsgtm_mon[4];
 
 void Display_Init( void )
 {
+    static SPI_HandleTypeDef SpiHandle;
+
     SpiHandle.Instance                  = SPI2;
     SpiHandle.Init.Mode                 = SPI_MODE_MASTER;
     SpiHandle.Init.BaudRatePrescaler    = SPI_BAUDRATEPRESCALER_16;
@@ -53,7 +57,6 @@ void Display_Init( void )
 
 void Display_Task( void )
 {
-    uint8_t stateIDLE;
     char ClockMsgtm_hour[3];
     char ClockMsgtm_min[3];
     char ClockMsgtm_sec[3]; 
@@ -68,9 +71,14 @@ void Display_Task( void )
         break;
 
     case STATE_PRINT_TIME:
-        itoa( ClockMsg.tm.tm_hour, ClockMsgtm_hour, 10 );
-        itoa( ClockMsg.tm.tm_min, ClockMsgtm_min, 10 );
-        itoa( ClockMsg.tm.tm_sec, ClockMsgtm_sec, 10 );
+
+        if( (ClockMsg.tm.tm_hour == 0u) && (ClockMsg.tm.tm_min == 0u) && (ClockMsg.tm.tm_sec == 0u) ){
+            HEL_LCD_Command( &hlcd, CLEAR );
+        }
+
+        (void)itoa( ClockMsg.tm.tm_hour, ClockMsgtm_hour, 10 );
+        (void)itoa( ClockMsg.tm.tm_min, ClockMsgtm_min, 10 );
+        (void)itoa( ClockMsg.tm.tm_sec, ClockMsgtm_sec, 10 );
 
         HEL_LCD_SetCursor( &hlcd, 1, 3 );
         HEL_LCD_String( &hlcd, ClockMsgtm_hour ); 
@@ -90,8 +98,8 @@ void Display_Task( void )
     case STATE_PRINT_DATE:
         monthNumberToMonthWord();
 
-        itoa( ClockMsg.tm.tm_mday, ClockMsgtm_mday, 10 );
-        itoa( ClockMsg.tm.tm_year, ClockMsgtm_year, 10 );
+        (void)itoa( ClockMsg.tm.tm_mday, ClockMsgtm_mday, 10 );
+        (void)itoa( ClockMsg.tm.tm_year, ClockMsgtm_year, 10 );
 
         HEL_LCD_SetCursor( &hlcd, 0, 1 );
         HEL_LCD_String( &hlcd, ClockMsgtm_mon );
@@ -117,75 +125,78 @@ void monthNumberToMonthWord( void ){
     switch (ClockMsg.tm.tm_mon)
     {
     case 1:
-        for( i = 0; i < 3; i++ ){
+        for( i = 0u; i < 3u; i++ ){
             ClockMsgtm_mon[i] = months[i];
         }
         break;
 
     case 2:
-        for( i = 0; i < 3; i++ ){
-            ClockMsgtm_mon[i] = months[i+4];
+        for( i = 0u; i < 3u; i++ ){
+            ClockMsgtm_mon[i] = months[i+4u];
         }
         break;
 
     case 3:
-        for( i = 0; i < 3; i++ ){
-            ClockMsgtm_mon[i] = months[i+8];
+        for( i = 0u; i < 3u; i++ ){
+            ClockMsgtm_mon[i] = months[i+8u];
         }
         break;
 
     case 4:
-        for( i = 0; i < 3; i++ ){
-            ClockMsgtm_mon[i] = months[i+12];
+        for( i = 0u; i < 3u; i++ ){
+            ClockMsgtm_mon[i] = months[i+12u];
         }
         break;
 
     case 5:
-        for( i = 0; i < 3; i++ ){
-            ClockMsgtm_mon[i] = months[i+16];
+        for( i = 0u; i < 3u; i++ ){
+            ClockMsgtm_mon[i] = months[i+16u];
         }
         break;
 
     case 6:
-        for( i = 0; i < 3; i++ ){
-            ClockMsgtm_mon[i] = months[i+20];
+        for( i = 0u; i < 3u; i++ ){
+            ClockMsgtm_mon[i] = months[i+20u];
         }
         break;
 
     case 7:
-        for( i = 0; i < 3; i++ ){
-            ClockMsgtm_mon[i] = months[i+24];
+        for( i = 0u; i < 3u; i++ ){
+            ClockMsgtm_mon[i] = months[i+24u];
         }
         break;
 
     case 8:
-        for( i = 0; i < 3; i++ ){
-            ClockMsgtm_mon[i] = months[i+28];
+        for( i = 0u; i < 3u; i++ ){
+            ClockMsgtm_mon[i] = months[i+28u];
         }
         break;
 
     case 9:
-        for( i = 0; i < 3; i++ ){
-            ClockMsgtm_mon[i] = months[i+32];
+        for( i = 0u; i < 3u; i++ ){
+            ClockMsgtm_mon[i] = months[i+32u];
         }
         break;
 
     case 10:
-        for( i = 0; i < 3; i++ ){
-            ClockMsgtm_mon[i] = months[i+36];
+        for( i = 0u; i < 3u; i++ ){
+            ClockMsgtm_mon[i] = months[i+36u];
         }
         break;
 
     case 11:
-        for( i = 0; i < 3; i++ ){
-            ClockMsgtm_mon[i] = months[i+40];
+        for( i = 0u; i < 3u; i++ ){
+            ClockMsgtm_mon[i] = months[i+40u];
         }
         break;
 
     case 12:
-       for( i = 0; i < 3; i++ ){
-            ClockMsgtm_mon[i] = months[i+44];
+       for( i = 0u; i < 3u; i++ ){
+            ClockMsgtm_mon[i] = months[i+44u];
         }
+        break;
+
+    default:
         break;
     }
 }

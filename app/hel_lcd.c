@@ -9,9 +9,9 @@
 #define FOLLOWER_CONTROL 0x6Du
 #define CONTRAST 0x70u
 #define DISPLAY_ON 0x0Cu
-#define CURSOR_ON 0x0Eu
 #define ENTRY_MODE 0x06u
 #define CLEAR 0x01u 
+#define SET_CURSOR 0x80u
 
 #define LCD_ON 1u
 #define LCD_OFF 2u
@@ -77,18 +77,18 @@ void HEL_LCD_String( LCD_HandleTypeDef *hlcd, char *str )
 
 void HEL_LCD_SetCursor( LCD_HandleTypeDef *hlcd, uint8_t row, uint8_t col )
 {
-    const uint8_t rowZero[16] = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F };
-    const uint8_t rowOne[16] = { 0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4A, 0x4B, 0x4C, 0x4D, 0x4E, 0x4F };
+    const uint8_t rowZero = 0x00u;
+    const uint8_t rowOne = 0x40u;
     uint8_t ddRamAddress;
 
     if( row == 0u ){
-        ddRamAddress = rowZero[col];
+        ddRamAddress = (rowZero + col);
     }
     else{
-        ddRamAddress = rowOne[col];
+        ddRamAddress = (rowOne + col);
     }
 
-    HEL_LCD_Command( hlcd, 0x80u | ddRamAddress );
+    HEL_LCD_Command( hlcd, SET_CURSOR | ddRamAddress );
     /*Row[0:1] & Col[0:15]*/   
 }
 
