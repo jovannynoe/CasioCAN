@@ -143,6 +143,18 @@ void HAL_RTC_MspInit( RTC_HandleTypeDef* hrtc )
     __HAL_RCC_RTCAPB_CLK_ENABLE();
 }
 
+/**
+ * @brief   **Function to initialize and configurate SPI**
+ *
+ * Function to configurate the SCK, MOSI and MISO pins to can transmit in SPI because we are using 
+ * on master mode. Alternate function push pull mode, we activate the pull up, high speed and SPI2
+ * alternate function mapping. 
+ * 
+ * @param   <*hspi>[out] Parameter that is used only in the function because it is a requirement
+ *
+ * @retval  None
+ * 
+ */
 void HAL_SPI_MspInit( SPI_HandleTypeDef *hspi )
 {
     *hspi = *hspi;
@@ -160,26 +172,35 @@ void HAL_SPI_MspInit( SPI_HandleTypeDef *hspi )
     HAL_GPIO_Init(GPIOB, &GPIO_SpiStruct);
 }
 
+/**
+ * @brief   **Function to initialize and configurate LCD**
+ *
+ * Function to configurate the Backlight, Data/Command, Reset and Chip Select pins to can print
+ * in the LCD. Output push pull mode, without pull up or pull down and low speed.
+ * 
+ * @param   <*hlcd>[out] Parameter that is used only in the function because it is a requirement
+ *
+ * @retval  None
+ * 
+ */
 void HEL_LCD_MspInit( LCD_HandleTypeDef *hlcd )
 {
     *hlcd = *hlcd;
 
     GPIO_InitTypeDef GPIO_LCDStruct;
 
-    __GPIOB_CLK_ENABLE();   /*Habilitamos reloj del puerto B*/
-    __GPIOC_CLK_ENABLE();   /*Habilitamos reloj del puerto C*/
+    __GPIOB_CLK_ENABLE();   
+    __GPIOC_CLK_ENABLE();   
 
     GPIO_LCDStruct.Pin = GPIO_PIN_8 | GPIO_PIN_9 | GPIO_PIN_12; /*BKL | RS | RST*/
-    GPIO_LCDStruct.Mode  = GPIO_MODE_OUTPUT_PP;    /*Salida tipo push-pull*/
-    GPIO_LCDStruct.Pull  = GPIO_NOPULL;    /*Pin sin pull-up ni pull-down*/
-    GPIO_LCDStruct.Speed = GPIO_SPEED_FREQ_LOW;    /*Pin a baja velocidad*/
-    /*Inicializamos pines con los parametros anteriores*/
+    GPIO_LCDStruct.Mode  = GPIO_MODE_OUTPUT_PP;    
+    GPIO_LCDStruct.Pull  = GPIO_NOPULL;   
+    GPIO_LCDStruct.Speed = GPIO_SPEED_FREQ_LOW;    
     HAL_GPIO_Init( GPIOC, &GPIO_LCDStruct );
 
     GPIO_LCDStruct.Pin = GPIO_PIN_15; /*CS*/
-    GPIO_LCDStruct.Mode  = GPIO_MODE_OUTPUT_PP;    /*Salida tipo push-pull*/
-    GPIO_LCDStruct.Pull  = GPIO_NOPULL;    /*Pin sin pull-up ni pull-down*/
-    GPIO_LCDStruct.Speed = GPIO_SPEED_FREQ_LOW;    /*Pin a baja velocidad*/
-    /*Inicializamos pines con los parametros anteriores*/
+    GPIO_LCDStruct.Mode  = GPIO_MODE_OUTPUT_PP;    
+    GPIO_LCDStruct.Pull  = GPIO_NOPULL;    
+    GPIO_LCDStruct.Speed = GPIO_SPEED_FREQ_LOW;    
     HAL_GPIO_Init( GPIOB, &GPIO_LCDStruct );
 }
