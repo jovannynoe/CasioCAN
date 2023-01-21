@@ -3,17 +3,21 @@
  * @author  Jovanny Noé Casillas Franco
  * @brief   **This file is to receive messages through CANdo and save the values in structure**
  *
- * The driver works through state machines where the state idle is the main state, later, we have the another state called message,
- * in this state we verifying what is the type of message, if the message is a time, date, alarm or none. We know what type is because
- * in the second byte of the CANdo we have to write 0x01 for time, 0x02 for date and 0x03 for alarm, if this byte is different is a
- * error, so, here is when the error state appears, this state just come back a message to CANdo with a message that indicate an error.
- * When it is a error message we return to CANdo the same CAN-TP but the others bytes are 0xAA, but if the message is ok we return
- * to CANdo the same CANT-TP but the others bytes are 0x55.
+ * The driver works through state machines where the state idle is the main state, later, we have the 
+ * another state called message, in this state we verifying what is the type of message, if the message 
+ * is a time, date, alarm or none. We know what type is because in the second byte of the CANdo we have 
+ * to write 0x01 for time, 0x02 for date and 0x03 for alarm, if this byte is different is a error, so, 
+ * here is when the error state appears, this state just come back a message to CANdo with a message 
+ * that indicate an error.
+ * When it is a error message we return to CANdo the same CAN-TP but the others bytes are 0xAA, but if 
+ * the message is ok we return to CANdo the same CANT-TP but the others bytes are 0x55.
  * 
- * The another state is the time state, in this state we validate if the values are in the range of 24 hours, if the values are ok,
- * so, we go to ok state and in this state we save the values in a structure. The date state validate if the values are correct we 
- * go to ok state and we save the values in the same structure. Finally, we have the alarm state, in this state just we validate 
- * the hour and the minutes, if everything is ok, we go to ok state and we save the values in the same structure.
+ * The another state is the time state, in this state we validate if the values are in the range of 24 
+ * hours, if the values are ok, so, we go to ok state and in this state we save the values in a 
+ * structure. The date state validate if the values are correct we go to ok state and we save the 
+ * values in the same structure. Finally, we have the alarm state, in this state just we validate 
+ * the hour and the minutes, if everything is ok, we go to ok state and we save the values in the same 
+ * structure.
  * 
  * @note    We need take in count that the range of the year in date is just between 1900 to 2100.
  *          
@@ -25,52 +29,52 @@
 /** 
   * @defgroup States States to we know what is the state without errors
   @{ */
-#define STATE_IDLE 0u
-#define STATE_TIME 1u
-#define STATE_DATE 2u
-#define STATE_ALARM 3u
-#define STATE_MESSAGE 4u
-#define STATE_OK 5u
-#define STATE_ERROR 6u
+#define STATE_IDLE 0u       /*!< Idle state */       
+#define STATE_TIME 1u       /*!< State to validate the parameters of time */
+#define STATE_DATE 2u       /*!< State to validate the parameters of date */
+#define STATE_ALARM 3u      /*!< State to validate the parameters of alarm */
+#define STATE_MESSAGE 4u    /*!< State to validate and select what type of message */
+#define STATE_OK 5u         /*!< State to save the values of the message in structure */
+#define STATE_ERROR 6u      /*!< State to send a error message to CANdo */
 /**
   @} */
 
 /** 
   * @defgroup Substates Substates to we know what is the substate without errors
   @{ */
-#define STATE_HOURS 1u
-#define STATE_MINUTES 2u
-#define STATE_SECONDS 3u
-#define STATE_DAY 1u
-#define STATE_MONTH 2u
-#define STATE_YEAR 3u
+#define STATE_HOURS 1u      /*!< State to validate the hours */
+#define STATE_MINUTES 2u    /*!< State to validate the minutes */
+#define STATE_SECONDS 3u    /*!< State to validate the seconds */
+#define STATE_DAY 1u        /*!< State to validate the day of the month */
+#define STATE_MONTH 2u      /*!< State to validate the month */
+#define STATE_YEAR 3u       /*!< State to validate the year */
 /**
   @} */
 
 /** 
   * @defgroup CAN Values used in the transmission or reception of CAN
   @{ */
-#define ERROR_TRANSMIT 0xAAu
-#define OK_TRANSMIT 0x55u
-#define CAN_TP 0x07u
+#define ERROR_TRANSMIT 0xAAu    /*!< Value to send when is an error message */
+#define OK_TRANSMIT 0x55u       /*!< Value to send when is an OK message */
+#define CAN_TP 0x07u            /*!< Value to send in the first byte */
 /**
   @} */
 
 /** 
   * @defgroup Months Months of the year
   @{ */
-#define JAN 1u
-#define FEB 2u
-#define MAR 3u
-#define APR 4u
-#define MAY 5u
-#define JUN 6u
-#define JUL 7u
-#define AUG 8u
-#define SEP 9u
-#define OCT 10u
-#define NOV 11u
-#define DEC 12u
+#define JAN 1u  /*!< January month */
+#define FEB 2u  /*!< February month */
+#define MAR 3u  /*!< March month */
+#define APR 4u  /*!< April month */
+#define MAY 5u  /*!< May month */
+#define JUN 6u  /*!< June month */
+#define JUL 7u  /*!< July month */
+#define AUG 8u  /*!< August month */
+#define SEP 9u  /*!< September month */
+#define OCT 10u /*!< October month */
+#define NOV 11u /*!< November month */
+#define DEC 12u /*!< December month */
 /**
   @} */
 
