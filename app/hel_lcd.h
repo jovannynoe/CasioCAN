@@ -3,34 +3,38 @@
  * @author  Jovanny Noé Casillas Franco
  * @brief   Header file of LCD
  *
- * The Clock header file is to make the structures and we use in differents files, also, to declarate the functions prototypes
- * that we are using in the source file. 
+ * The LCD header file is to make the structures and we use in differents files, also, to declarate the 
+ * functions prototypes that we are using in the source file. 
  * 
- * @note    We need take in count that we have the extern with the declaration of structures because we use MISRA.
+ * @note    We need take in count that we have the extern with the declaration of structures because we 
+ *          use MISRA.
  * 
  */
 #ifndef HEL_LCD_H__
 #define HEL_LCD_H__
 
+/**
+  * @brief   Structure to configurate the pins and ports of the LCD
+  */
 typedef struct
 {
-    SPI_HandleTypeDef   *SpiHandler; /* SPI handler address of the spi to use with the LCD*/
+    SPI_HandleTypeDef   *SpiHandler;    /* SPI handler address of the spi to use with the LCD */
 
-    GPIO_TypeDef        *RstPort;   /*port where the pin to control the LCD reset pin is*/
+    GPIO_TypeDef        *RstPort;       /*!< Port where the pin to control the LCD reset pin is */
 
-    uint32_t            RstPin; /*pin to control the LCD reset pin */
+    uint32_t            RstPin;         /*!< Pin to control the LCD reset pin */
 
-    GPIO_TypeDef        *RsPort; /*port where the pin to control the LCD RS pin*/
+    GPIO_TypeDef        *RsPort;        /*!< Port where the pin to control the LCD RS pin */
 
-    uint32_t            RsPin;  /*pin to control the LCD RS pin */
+    uint32_t            RsPin;          /*!< Pin to control the LCD RS pin */
 
-    GPIO_TypeDef        *CsPort; /*port where the pin to control the LCD chip select is*/
+    GPIO_TypeDef        *CsPort;        /*!< Port where the pin to control the LCD chip select is */
 
-    uint32_t            CsPin;  /*pin to control the LCD chip select pin */
+    uint32_t            CsPin;          /*!< Pin to control the LCD chip select pin */
 
-    GPIO_TypeDef        *BklPort; /*port where the pin to control the LCD backlight is*/
+    GPIO_TypeDef        *BklPort;       /*!< Port where the pin to control the LCD backlight is*/
 
-    uint32_t            BklPin;  /*pin to control the LCD backlight pin */
+    uint32_t            BklPin;         /*!< Pin to control the LCD backlight pin */
 
 }LCD_HandleTypeDef;
 
