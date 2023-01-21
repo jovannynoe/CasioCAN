@@ -1,14 +1,55 @@
+/**
+ * @file    app_display.c
+ * @author  Jovanny Noé Casillas Franco
+ * @brief   **This driver is to can use the LCD**
+ *
+ * The driver works with a state machines, only three states. The fisrt state is the idle state in where 
+ * we go to the print time state in where we print the time in the LCD, later, when we print the time, we
+ * go to print date state in where we print the date and the week day in the LCD, finally we go to idle
+ * state again.
+ * 
+ * @note    We need take in count that now we only print the time and date in the LCD.
+ * 
+ */
 #include "app_bsp.h"
 #include "app_display.h"
 #include "app_serial.h"
 #include "app_clock.h"
 #include <stdlib.h>
 
-#define STATE_IDLE 0
-#define STATE_PRINT_TIME 1
-#define STATE_PRINT_DATE 2
+/** 
+  * @defgroup Months Months of the year
+  @{ */
+#define JAN 1u  /*!< January month */
+#define FEB 2u  /*!< February month */
+#define MAR 3u  /*!< March month */
+#define APR 4u  /*!< April month */
+#define MAY 5u  /*!< May month */
+#define JUN 6u  /*!< June month */
+#define JUL 7u  /*!< July month */
+#define AUG 8u  /*!< August month */
+#define SEP 9u  /*!< September month */
+#define OCT 10u /*!< October month */
+#define NOV 11u /*!< November month */
+#define DEC 12u /*!< December month */
+/**
+  @} */
 
-#define CLEAR 0x01u 
+/** 
+  * @defgroup States States to we know what is the state without errors
+  @{ */
+#define STATE_IDLE 0        /*!< Idle state */
+#define STATE_PRINT_TIME 1  /*!< State to print the time in LCD */
+#define STATE_PRINT_DATE 2  /*!< State to print the time in LCD */
+/**
+  @} */
+
+/** 
+  * @defgroup Commands Commands to can use the LCD
+  @{ */
+#define CLEAR 0x01u /*!< Command to clear the LCD */ 
+/**
+  @} */
 
 static void monthNumberToMonthWord( void );
 static void weekDayNumberToWeekDayWord( void );
@@ -19,18 +60,38 @@ static void weekDayNumberToWeekDayWord( void );
 LCD_HandleTypeDef hlcd;
 
 /**
- * @brief  Variable
+ * @brief  Global variable because is used in two functions to manage the state machine
  */
 static uint8_t stateDisplay;
 
+/**
+ * @brief  Global variable because is used in two functions to manipulate the months in array
+ */
 static char ClockMsgtm_mon[4];
+
+/**
+ * @brief  Global variable because is used in two functions to manipulate the week days in array
+ */
 static char ClockMsgtm_wday[3];
 
+/**
+ * @brief   **Display init function is to configurate the SPI peripheral to can use the LCD**
+ *
+ * In this function we go to configurate the SPI peripheral to can use the LCD. We configurate the
+ * SPI2 because the pins used to can communicate the LCD through SPI are in SPI2. Later, we
+ * configurate in master mode, with a prescaler of 16 because the SCK is 64MHz and the LCD works to
+ * 4MHz so, to can transmit the information to LCD we are need the same CLK. The communication is 
+ * full-duplex, polarity of clock high and phase on falling edge.
+ * The direction is bidirectional with 2 lines, the 8 bits datasize and whether data transfers 
+ * start from MSB.
+ * 
+ * @retval  None
+ */
 void Display_Init( void )
 {
     static SPI_HandleTypeDef SpiHandle;
 
-    SpiHandle.Instance                  = SPI2;
+    SpiHandle.Instance                  = SPI2; 
     SpiHandle.Init.Mode                 = SPI_MODE_MASTER;
     SpiHandle.Init.BaudRatePrescaler    = SPI_BAUDRATEPRESCALER_16;
     SpiHandle.Init.Direction            = SPI_DIRECTION_2LINES;
@@ -57,6 +118,19 @@ void Display_Init( void )
     stateDisplay = STATE_IDLE;
 }
 
+/**
+ * @brief   **Display task function is the part to print time and date**
+ *
+ * In this function, first we stay in the state idle, later we go to state print time in where 
+ * we print the time in the LCD, but, first we convert the hours, minutes and seconds to string 
+ * with the function itoa to can transmit to LCD the information. After that, we go to state 
+ * print date in where we convert the day of the month and the year with te function itoa to 
+ * string to can use the function HEL_LCD_String and can print in the LCD, also, we use two 
+ * functions to convert the day of the week and the month to word. Finally, we go to state idle.
+ *
+ * @retval  None
+ *
+ */
 void Display_Task( void )
 {
     char ClockMsgtm_hour[3];
@@ -123,79 +197,90 @@ void Display_Task( void )
     }
 }
 
+/**
+ * @brief   **Month number to month word convert function**
+ *
+ * In this function, we ask the month in number and we convert the month to word of three leters
+ * and we save the month in word in a char of four elements. For example, if the month is 2(FEB), 
+ * so, we convert the month to word, we save the word FEB in a char called ClockMsgtm_mon to can
+ * print the name in place that of the number.
+ *
+ * @retval  None
+ *
+ */
 void monthNumberToMonthWord( void ){
     static uint8_t i;
     const uint8_t months[47] = "JAN FEB MAR APR MAY JUN JUL AUG SEP OCT NOV DEC";
 
     switch (ClockMsg.tm.tm_mon)
     {
-    case 1:
+    case JAN:
         for( i = 0u; i < 3u; i++ ){
             ClockMsgtm_mon[i] = months[i];
         }
         break;
 
-    case 2:
+    case FEB:
         for( i = 0u; i < 3u; i++ ){
             ClockMsgtm_mon[i] = months[i+4u];
         }
         break;
 
-    case 3:
+    case MAR:
         for( i = 0u; i < 3u; i++ ){
             ClockMsgtm_mon[i] = months[i+8u];
         }
         break;
 
-    case 4:
+    case APR:
         for( i = 0u; i < 3u; i++ ){
             ClockMsgtm_mon[i] = months[i+12u];
         }
         break;
 
-    case 5:
+    case MAY:
         for( i = 0u; i < 3u; i++ ){
             ClockMsgtm_mon[i] = months[i+16u];
         }
         break;
 
-    case 6:
+    case JUN:
         for( i = 0u; i < 3u; i++ ){
             ClockMsgtm_mon[i] = months[i+20u];
         }
         break;
 
-    case 7:
+    case JUL:
         for( i = 0u; i < 3u; i++ ){
             ClockMsgtm_mon[i] = months[i+24u];
         }
         break;
 
-    case 8:
+    case AUG:
         for( i = 0u; i < 3u; i++ ){
             ClockMsgtm_mon[i] = months[i+28u];
         }
         break;
 
-    case 9:
+    case SEP:
         for( i = 0u; i < 3u; i++ ){
             ClockMsgtm_mon[i] = months[i+32u];
         }
         break;
 
-    case 10:
+    case OCT:
         for( i = 0u; i < 3u; i++ ){
             ClockMsgtm_mon[i] = months[i+36u];
         }
         break;
 
-    case 11:
+    case NOV:
         for( i = 0u; i < 3u; i++ ){
             ClockMsgtm_mon[i] = months[i+40u];
         }
         break;
 
-    case 12:
+    case DEC:
        for( i = 0u; i < 3u; i++ ){
             ClockMsgtm_mon[i] = months[i+44u];
         }
@@ -206,6 +291,17 @@ void monthNumberToMonthWord( void ){
     }
 }
 
+/**
+ * @brief   **Weekday number to weekday word convert function**
+ *
+ * In this function, we ask the weekday in number and we convert the weekday to word of two leters
+ * and we save the weekday in word in a char of three elements. For example, if the weekday is 
+ * 1(RTC_WEEKDAY_MONDAY), so, we convert the weekday to word, we save the word Mo in a char called 
+ * ClockMsgtm_wday to can print the name in place that of the number.
+ *
+ * @retval  None
+ *
+ */
 void weekDayNumberToWeekDayWord( void ){
     static uint8_t i;
     const uint8_t weekDays[21] = "Mo Tu We Th Fr Sa Su";

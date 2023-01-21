@@ -35,9 +35,9 @@
   * @defgroup States States to we know what is the state without errors
   @{ */
 #define STATE_IDLE 0            /*!< Idle state */
-#define STATE_SHOW_TIME 1       /*!< State to print the time */
-#define STATE_SHOW_DATE 2       /*!< State to print the date */
-#define STATE_SHOW_ALARM 3      /*!< State to print the alarm */
+#define STATE_SHOW_TIME 1       /*!< State to save the time in another strcuture */
+#define STATE_SHOW_DATE 2       /*!< State to save the date in another strcuture */
+#define STATE_SHOW_ALARM 3      /*!< State to save the alarm in another strcuture */
 #define STATE_CHANGE_TIME 4     /*!< State to change the values in time */
 #define STATE_CHANGE_DATE 5     /*!< State to change the values in date */
 #define STATE_CHANGE_ALARM 6    /*!< State to change the values in alarm */
@@ -72,7 +72,7 @@ static RTC_AlarmTypeDef sAlarm = {0};
 /**
  * @brief  Global variable because is used in two functions to manage the state machine
  */
-static uint8_t stateClock = 0;
+static uint8_t stateClock;
 
 /**
  * @brief  Global variable because is used in two functions
