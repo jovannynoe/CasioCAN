@@ -36,6 +36,7 @@
 #define STATE_MESSAGE 4u    /*!< State to validate and select what type of message */
 #define STATE_OK 5u         /*!< State to save the values of the message in structure */
 #define STATE_ERROR 6u      /*!< State to send a error message to CANdo */
+#define STATE_RECEPTION 7u  /*!< State to read messages */ 
 /**
   @} */
 
@@ -199,6 +200,10 @@ void Serial_Task( void )
             flag = 0u;
             stateSerial = STATE_MESSAGE;
         }
+        break;
+
+    case STATE_RECEPTION:
+        if( HIL_QUE)
         break;
     
     case STATE_MESSAGE:
