@@ -153,7 +153,7 @@ void Dog_Init( void )
     hwwdg.Instance = WWDG;
     hwwdg.Init.Prescaler = WWDG_PRESCALER_8;
     hwwdg.Init.Window = WWDG_WINDOW;    /*WWDG_WINDOW; 80 = 25ms*/
-    hwwdg.Init.Counter = WWDG_COUNTER;  /*WWDG_COUNTER; 127 = 32ms*/
+    hwwdg.Init.Counter = WWDG_COUNTER;  /*WWDG_COUNTER; 127 = 32ms*/    
     hwwdg.Init.EWIMode = WWDG_EWI_DISABLE;
     HAL_WWDG_Init( &hwwdg );
 
