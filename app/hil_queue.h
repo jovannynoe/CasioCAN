@@ -28,6 +28,6 @@ extern void HIL_QUEUE_Flush( QUEUE_HandleTypeDef *hqueue );
 extern uint8_t HIL_QUEUE_WriteISR( QUEUE_HandleTypeDef *hqueue, void *data, uint8_t isr );
 extern uint8_t HIL_QUEUE_ReadISR( QUEUE_HandleTypeDef *hqueue, void *data, uint8_t isr );
 extern uint8_t HIL_QUEUE_IsEmptyISR( QUEUE_HandleTypeDef *hqueue, uint8_t isr ); 
-extern uint8_t HIL_QUEUE_FlushISR( QUEUE_HandleTypeDef *hqueue, uint8_t isr );
+extern void HIL_QUEUE_FlushISR( QUEUE_HandleTypeDef *hqueue, uint8_t isr );
 
 #endif

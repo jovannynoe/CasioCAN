@@ -25,6 +25,7 @@
 #include "app_bsp.h"
 #include "app_serial.h"
 #include "app_clock.h"
+#include "hil_queue.h"
 
 /** 
   * @defgroup States States to we know what is the state without errors
@@ -80,6 +81,11 @@
   @} */
 
 /**
+ * @brief  Variable for QUEUE Handle Structure definition
+ */
+QUEUE_HandleTypeDef CANQueue;
+
+/**
  * @brief  Variable for FDCAN Handle Structure definition
  */
 FDCAN_HandleTypeDef CANHandler;
@@ -107,12 +113,17 @@ static uint8_t RxData[8];
 /**
  * @brief  Global variable to we use like a flag
  */
-static uint8_t flag = 0;
+static uint8_t flag = 0u;
 
 /**
  * @brief  Global variable to change the state in the state machines
  */
-static uint8_t stateSerial = 0;
+static uint8_t stateSerial;
+
+/**
+ * @brief  Global variable to wait a message per 10 ms
+ */
+static uint8_t tickstartWaitMessage;
 
 /**
  * @brief   **Serial init function is to configurate the CAN protocol**
@@ -164,7 +175,9 @@ void Serial_Init( void )
     HAL_FDCAN_Start( &CANHandler);
 
     /*activamos la interrupcion por recepcion en el fifo0 cuando llega algun mensaje*/
-    HAL_FDCAN_ActivateNotification( &CANHandler, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0 );   
+    HAL_FDCAN_ActivateNotification( &CANHandler, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0 ); 
+
+    tickstartWaitMessage = HAL_GetTick();  
 }
 
 /**
@@ -195,15 +208,25 @@ void Serial_Task( void )
     switch (stateSerial)
     {
     case STATE_IDLE:
-
-        if( flag == 1u ){
-            flag = 0u;
-            stateSerial = STATE_MESSAGE;
+        if( (HAL_GetTick() - tickstartWaitMessage) >= 10 ){
+            tickstartWaitMessage = HAL_GetTick();
+            stateSerial = STATE_RECEPTION;
         }
         break;
 
     case STATE_RECEPTION:
-        if( HIL_QUE)
+        if( HIL_QUEUE_IsEmpty( &CANQueue ) == 0u ){
+
+            HIL_QUEUE_Read( &CANQueue, RxData );
+
+            if( flag == 1u ){
+                flag = 0u;
+                stateSerial = STATE_MESSAGE;
+            }
+        }
+        else{
+            stateSerial = STATE_IDLE;
+        }
         break;
     
     case STATE_MESSAGE:
@@ -409,7 +432,7 @@ void Serial_Task( void )
             break;
         }
 
-        stateSerial = STATE_IDLE;
+        stateSerial = STATE_RECEPTION;
         break;
 
     case STATE_ERROR:
@@ -421,7 +444,7 @@ void Serial_Task( void )
 
         HAL_FDCAN_AddMessageToTxFifoQ( &CANHandler, &CANTxHeader, TxData );
 
-        stateSerial = STATE_IDLE;
+        stateSerial = STATE_RECEPTION;
         break;
     
     default:
