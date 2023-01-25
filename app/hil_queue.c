@@ -20,11 +20,11 @@ uint8_t HIL_QUEUE_Write( QUEUE_HandleTypeDef *hqueue, void *data )
 {
     uint8_t writingIsSuccessful = ZERO;
 
-    memcpy( hqueue->Buffer, data, hqueue->Size );
+    if( hqueue->Full == ZERO ){
+        memcpy( hqueue->Buffer + hqueue->Head, data, hqueue->Size );
+        hqueue->Head += hqueue->Size % hqueue->Elements;
 
-    if( memcmp( hqueue->Buffer, data, hqueue->Size ) == ZERO ){
         writingIsSuccessful = ONE;
-        hqueue->Head = ( hqueue->Head + ONE ) % hqueue->Elements;
     }
     else{
         writingIsSuccessful = ZERO;
@@ -37,11 +37,10 @@ uint8_t HIL_QUEUE_Read( QUEUE_HandleTypeDef *hqueue, void *data )
 {
     uint8_t readingIsSuccessful = ZERO;
 
-    memcpy( data, hqueue->Buffer, hqueue->Size );
-
-    if( memcmp( data, hqueue->Buffer, hqueue->Size ) == ZERO ){
+    if( HIL_QUEUE_IsEmpty( hqueue ) == 0 ){
+        memcpy( hqueue->Buffer + hqueue->Tail, data, hqueue->Size );
+        hqueue->Tail += hqueue->Size % hqueue->Elements;
         readingIsSuccessful = ONE;
-        hqueue->Tail = ( hqueue->Tail + ONE ) % hqueue->Elements;
     }
     else{
         readingIsSuccessful = ZERO;
@@ -53,7 +52,7 @@ uint8_t HIL_QUEUE_IsEmpty( QUEUE_HandleTypeDef *hqueue )
 {
     uint8_t queueIsEmpty = ZERO;
 
-    if( ( hqueue->Full == ZERO ) || ( hqueue->Full != hqueue->Size ) ){
+    if( (hqueue->Head == hqueue->Tail) && (hqueue->Full == 0) ){
         queueIsEmpty = ONE;
     }
     else{

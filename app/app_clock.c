@@ -80,7 +80,7 @@ static uint8_t stateClock;
 static uint32_t tickstartShowTime;
 
 /**
- * @brief   **Clock init function is to configurate the RTC peripheral**
+ * @brief   Clock init function is to configurate the RTC peripheral.
  *
  * In this function we go to configurate the RTC peripheral, also the 
  * time, date and alarm to we can use in the clock task function. 
@@ -131,7 +131,7 @@ void Clock_Init( void ){
 }
 
 /**
- * @brief   **Clock task function is the part of the state machines**
+ * @brief   Clock task function is the part of the state machines.
  *
  * In this function, first we stay in the state idle, later we check if passed a second
  * and if pass a second we go to the state show time, in this state we print the time, 
