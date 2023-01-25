@@ -17,6 +17,8 @@ typedef struct
 
     uint8_t     Full;       //bandera que indica si no se puede seguir escribiendo mas elementos
 
+    uint8_t     Counter;
+
 }QUEUE_HandleTypeDef;
 
 extern void HIL_QUEUE_Init( QUEUE_HandleTypeDef *hqueue );

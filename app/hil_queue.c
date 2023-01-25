@@ -23,6 +23,13 @@ uint8_t HIL_QUEUE_Write( QUEUE_HandleTypeDef *hqueue, void *data )
     if( hqueue->Full == ZERO ){
         memcpy( hqueue->Buffer + hqueue->Head, data, hqueue->Size );
         hqueue->Head += hqueue->Size % hqueue->Elements;
+        hqueue->Counter++;
+
+        if( hqueue->Counter == hqueue->Elements ){
+            hqueue->Full = ONE;
+        }
+        else{    
+        }
 
         writingIsSuccessful = ONE;
     }
@@ -37,9 +44,10 @@ uint8_t HIL_QUEUE_Read( QUEUE_HandleTypeDef *hqueue, void *data )
 {
     uint8_t readingIsSuccessful = ZERO;
 
-    if( HIL_QUEUE_IsEmpty( hqueue ) == 0 ){
-        memcpy( hqueue->Buffer + hqueue->Tail, data, hqueue->Size );
+    if( HIL_QUEUE_IsEmpty( hqueue ) == ZERO ){
+        memcpy( data, hqueue->Buffer + hqueue->Tail, hqueue->Size );
         hqueue->Tail += hqueue->Size % hqueue->Elements;
+        hqueue->Full = ZERO;
         readingIsSuccessful = ONE;
     }
     else{
@@ -84,15 +92,7 @@ uint8_t HIL_QUEUE_WriteISR( QUEUE_HandleTypeDef *hqueue, void *data, uint8_t isr
         HAL_NVIC_DisableIRQ( isr );
     }
 
-    memcpy( hqueue->Buffer, data, hqueue->Size );
-
-    if( memcmp( hqueue->Buffer, data, hqueue->Size ) == ZERO ){
-        writingIsSuccessful = ONE;
-        hqueue->Head = ( hqueue->Head + ONE ) % hqueue->Elements;
-    }
-    else{
-        writingIsSuccessful = ZERO;
-    }
+    HIL_QUEUE_Write( hqueue, data );
 
     if( isr == ALL_VECTORS ){
         for( i = 0; i <= 30; i++ ){
@@ -102,8 +102,6 @@ uint8_t HIL_QUEUE_WriteISR( QUEUE_HandleTypeDef *hqueue, void *data, uint8_t isr
     else{
         HAL_NVIC_EnableIRQ( isr );
     }
-
-    return writingIsSuccessful; 
 }
 
 uint8_t HIL_QUEUE_ReadISR( QUEUE_HandleTypeDef *hqueue, void *data, uint8_t isr )
@@ -120,15 +118,7 @@ uint8_t HIL_QUEUE_ReadISR( QUEUE_HandleTypeDef *hqueue, void *data, uint8_t isr 
         HAL_NVIC_DisableIRQ( isr );
     }
 
-    memcpy( data, hqueue->Buffer, hqueue->Size );
-
-    if( memcmp( data, hqueue->Buffer, hqueue->Size ) == ZERO ){
-        readingIsSuccessful = ONE;
-        hqueue->Tail = ( hqueue->Tail + ONE ) % hqueue->Elements;
-    }
-    else{
-        readingIsSuccessful = ZERO;
-    }
+    HIL_QUEUE_Read( hqueue, data );
 
     if( isr == ALL_VECTORS ){
         for( i = 0; i <= 30; i++ ){
@@ -138,8 +128,6 @@ uint8_t HIL_QUEUE_ReadISR( QUEUE_HandleTypeDef *hqueue, void *data, uint8_t isr 
     else{
         HAL_NVIC_EnableIRQ( isr );
     }
-
-    return readingIsSuccessful;
 }
 
 uint8_t HIL_QUEUE_IsEmptyISR( QUEUE_HandleTypeDef *hqueue, uint8_t isr )
@@ -156,12 +144,7 @@ uint8_t HIL_QUEUE_IsEmptyISR( QUEUE_HandleTypeDef *hqueue, uint8_t isr )
         HAL_NVIC_DisableIRQ( isr );
     }
 
-    if( ( hqueue->Full == ZERO ) || ( hqueue->Full != hqueue->Size ) ){
-        queueIsEmpty = ONE;
-    }
-    else{
-        queueIsEmpty = ZERO;
-    }
+    HIL_QUEUE_IsEmpty( hqueue );
 
     if( isr == ALL_VECTORS ){
         for( i = 0; i <= 30; i++ ){
@@ -171,8 +154,6 @@ uint8_t HIL_QUEUE_IsEmptyISR( QUEUE_HandleTypeDef *hqueue, uint8_t isr )
     else{
         HAL_NVIC_EnableIRQ( isr );
     }
-
-    return queueIsEmpty;
 }
 
 void HIL_QUEUE_FlushISR( QUEUE_HandleTypeDef *hqueue, uint8_t isr )
@@ -188,11 +169,7 @@ void HIL_QUEUE_FlushISR( QUEUE_HandleTypeDef *hqueue, uint8_t isr )
         HAL_NVIC_DisableIRQ( isr );
     }
 
-    hqueue->Head = ZERO;
-    hqueue->Tail = ZERO;
-    hqueue->Empty = ONE;
-    hqueue->Full = ZERO;
-    memset( hqueue->Buffer, ' ', strlen(hqueue->Buffer) );
+    HIL_QUEUE_Flush( hqueue );
 
     if( isr == ALL_VECTORS ){
         for( i = 0; i <= 30; i++ ){
