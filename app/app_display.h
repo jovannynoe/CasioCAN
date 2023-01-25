@@ -1,7 +1,7 @@
 /**
  * @file    app_display.h
  * @author  Jovanny Noé Casillas Franco
- * @brief   **Header file of Display**
+ * @brief   Header file of Display.
  *
  * The Display header file is to make the structures and we use in differents files, also, to declarate the functions prototypes
  * that we are using in the source file.

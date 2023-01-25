@@ -1,7 +1,7 @@
 /**
  * @file    app_ints.c
  * @author  Jovanny Noé Casillas Franco
- * @brief   **Source file of interrupts**
+ * @brief   Source file of interrupts.
  *
  * File with the interruption functions from the microcontroller
  * 
@@ -16,7 +16,7 @@ void EXTI4_15_IRQHandler( void );
 void TIM16_FDCAN_IT0_IRQHandler( void );
 
 /**
- * @brief   **Function to can use the Systick timer**
+ * @brief   Function to can use the Systick timer.
  *
  * Function to use the concurrent processes with the timer SysTick
  *
@@ -28,7 +28,7 @@ void SysTick_Handler( void )
 }
 
 /**
- * @brief   **EXTI IRQHandler**
+ * @brief   EXTI IRQHandler.
  *
  * Function to use external interrupts with the function Handle EXTI interrupt request.
  *
@@ -44,7 +44,7 @@ void EXTI4_15_IRQHandler( void )
 }
 
 /**
- * @brief   **FDCAN IRQHandler**
+ * @brief   FDCAN IRQHandler.
  *
  * Function to when we received or transmit a message through Handles FDCAN interrupt request.
  *

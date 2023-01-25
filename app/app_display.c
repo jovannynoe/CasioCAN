@@ -1,7 +1,7 @@
 /**
  * @file    app_display.c
  * @author  Jovanny Noé Casillas Franco
- * @brief   **This driver is to can use the LCD**
+ * @brief   This driver is to can use the LCD.
  *
  * The driver works with a state machines, only three states. The fisrt state is the idle state in where 
  * we go to the print time state in where we print the time in the LCD, later, when we print the time, we
@@ -75,7 +75,7 @@ static char ClockMsgtm_mon[4];
 static char ClockMsgtm_wday[3];
 
 /**
- * @brief   **Display init function is to configurate the SPI peripheral to can use the LCD**
+ * @brief   Display init function is to configurate the SPI peripheral to can use the LCD.
  *
  * In this function we go to configurate the SPI peripheral to can use the LCD. We configurate the
  * SPI2 because the pins used to can communicate the LCD through SPI are in SPI2. Later, we
@@ -119,7 +119,7 @@ void Display_Init( void )
 }
 
 /**
- * @brief   **Display task function is the part to print time and date**
+ * @brief   Display task function is the part to print time and date.
  *
  * In this function, first we stay in the state idle, later we go to state print time in where 
  * we print the time in the LCD, but, first we convert the hours, minutes and seconds to string 
@@ -198,7 +198,7 @@ void Display_Task( void )
 }
 
 /**
- * @brief   **Month number to month word convert function**
+ * @brief   Month number to month word convert function.
  *
  * In this function, we ask the month in number and we convert the month to word of three leters
  * and we save the month in word in a char of four elements. For example, if the month is 2(FEB), 
@@ -292,7 +292,7 @@ void monthNumberToMonthWord( void ){
 }
 
 /**
- * @brief   **Weekday number to weekday word convert function**
+ * @brief   .Weekday number to weekday word convert function.
  *
  * In this function, we ask the weekday in number and we convert the weekday to word of two leters
  * and we save the weekday in word in a char of three elements. For example, if the weekday is 

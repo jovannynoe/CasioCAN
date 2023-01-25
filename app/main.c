@@ -1,11 +1,13 @@
 /**
  * @file    main.c
  * @author  Jovanny Noé Casillas Franco
- * @brief   **This file is to run the functions created in files app_serial and app_clock also some others functions created here**
+ * @brief   This file is to run the functions created in files app_serial and app_clock also some 
+ *          others functions created here
  *
- * On the main file we run the functions from the other files and if we have functions in this file. First we run the HAL function,
- * later the others functions to initialize the drivers and in the while we run the functions with tasks. In this file we created 
- * two more functions, one for a heartbeat and another for the WWDG.
+ * On the main file we run the functions from the other files and if we have functions in this file. 
+ * First we run the HAL function, later the others functions to initialize the drivers and in the 
+ * while we run the functions with tasks. In this file we created two more functions, one for a 
+ * heartbeat and another for the WWDG.
  * 
  * @note    Only the files inside folder app will be take them into account when the
  *          doxygen runs by typing "make docs", index page is generated in
@@ -58,7 +60,7 @@ static uint32_t tickstartHeartBeat;
 static uint32_t tickstartPethTheDog;
 
 /**
- * @brief   **This function is the main where we run everything the functions**
+ * @brief   This function is the main where we run everything the functions.
  *
  * In main function we run everything the functions, in the first part just we run the 
  * functions to initilize some peripherals or protocols and in the while is own infinite
@@ -88,7 +90,7 @@ int main( void )
 }
 
 /**
- * @brief   **This heart init function is to configurate the led to heartbeat**
+ * @brief   This heart init function is to configurate the led to heartbeat.
  *
  * In this function we go to configurate like output the led to the heartbeat and
  * initializing for the first time the tickstart for the heartbeat.
@@ -110,7 +112,7 @@ void Heart_Init( void )
 }
 
 /**
- * @brief   **Heart Beat function is to count 300 ms and toggle the led**
+ * @brief   Heart Beat function is to count 300 ms and toggle the led.
  *
  * We use a HAL_GetTick function to use like timer to count the time to
  * turn on or turn off the led every 300 ms, in this case, the led is
@@ -128,7 +130,7 @@ void Heart_Beat( void )
 }
 
 /**
- * @brief   **This dog init function is to configurate the WWDG**
+ * @brief   This dog init function is to configurate the WWDG.
  *
  * In this function we go to configurate the WWDG peripheral to reset 
  * the NUCLEO and when the flag is active we turn on the led in the 
@@ -161,7 +163,7 @@ void Dog_Init( void )
 }
 
 /**
- * @brief   **Peth The Dog function is to count between 25 to 32 ms and refresh**
+ * @brief   Peth The Dog function is to count between 25 to 32 ms and refresh.
  *
  * We use a HAL_GetTick function to use like timer to count the time to
  * refresh the WWDG between 25 to 32 ms, if the time is greater than 32 ms

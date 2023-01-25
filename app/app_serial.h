@@ -1,12 +1,13 @@
 /**
  * @file    app_serial.h
  * @author  Jovanny Noé Casillas Franco
- * @brief   Header file of Serial
+ * @brief   Header file of Serial.
  *
- * The Clock header file is to make the structures and we use in differents files, also, to declarate the functions prototypes
- * that we are using in the source file. 
+ * The Clock header file is to make the structures and we use in differents files, also, to declarate 
+ * the functions prototypes that we are using in the source file. 
  * 
- * @note    We need take in count that we have the extern with the declaration of structures because we use MISRA.
+ * @note    We need take in count that we have the extern with the declaration of structures because 
+ *          we use MISRA.
  * 
  */
 #ifndef APP_SERIAL_H__

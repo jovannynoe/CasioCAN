@@ -1,7 +1,7 @@
 /**
  * @file    app_clock.c
  * @author  Jovanny Noé Casillas Franco
- * @brief   **This file is to can print the time**
+ * @brief   This file is to can print the time.
  *
  * The driver works through state machines where the state idle is the main state, later, we have the others states called show time,
  * show date and show alarm that this are the states that print the time, date and alarm through of RTC peripheral. After that, we

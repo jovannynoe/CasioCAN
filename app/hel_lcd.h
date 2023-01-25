@@ -1,7 +1,7 @@
 /**
  * @file    hel_lcd.h
  * @author  Jovanny Noé Casillas Franco
- * @brief   Header file of LCD
+ * @brief   Header file of LCD.
  *
  * The LCD header file is to make the structures and we use in differents files, also, to declarate the 
  * functions prototypes that we are using in the source file. 

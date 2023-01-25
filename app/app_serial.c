@@ -1,7 +1,7 @@
 /**
  * @file    app_serial.c
  * @author  Jovanny Noé Casillas Franco
- * @brief   **This file is to receive messages through CANdo and save the values in structure**
+ * @brief   This file is to receive messages through CANdo and save the values in structure.
  *
  * The driver works through state machines where the state idle is the main state, later, we have the 
  * another state called message, in this state we verifying what is the type of message, if the message 
@@ -126,7 +126,7 @@ static uint8_t stateSerial;
 static uint8_t tickstartWaitMessage;
 
 /**
- * @brief   **Serial init function is to configurate the CAN protocol**
+ * @brief   Serial init function is to configurate the CAN protocol.
  *
  * In this function we go to configurate the CAN protocol, also the TX header and the filter
  * to receive messages just with the ID 0x122 and 8 Bytes.
@@ -181,7 +181,7 @@ void Serial_Init( void )
 }
 
 /**
- * @brief   **Serial task function is the part of the state machines**
+ * @brief   Serial task function is the part of the state machines.
  *
  * In this function, first we stay in the state idle, later we check if flag is equal to one
  * we go to message state, in this state we check what is the type of message to go to next 
@@ -453,15 +453,15 @@ void Serial_Task( void )
 }
 
 /**
- * @brief   **CAN Callback function is to active the flag**
+ * @brief   CAN Callback function is to active the flag.
  *
  * In this function, we get the RX message and save the values in RxData to we can validate
  * the values in the state machine, but before, we validate the first byte in RxData 
  * because this byte is CAN-TP, so, if this byte is correct, flag receive 1 and stateSerial
  * receive idle state if this byte isn't correct, so we go to error state.  
  * 
- * @param   <*hfdcan>[out] Is a parameter that the function needs to work.
- * @param   <RxFifo0ITs>[out] Is a parameter that the function needs to work.
+ * @param   hfdcan[out] Is a parameter that the function needs to work.
+ * @param   RxFifo0ITs[out] Is a parameter that the function needs to work.
  *
  * @retval  None
  *
@@ -485,7 +485,7 @@ void HAL_FDCAN_RxFifo0Callback( FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs
 }
 
 /**
- * @brief   **BCD to Decimal function is to convert values to decimal**
+ * @brief   BCD to Decimal function is to convert values to decimal.
  *
  * In this function, we have a parameter in BCD format, so, we will change the format
  * to decimal format with a formula.
@@ -494,7 +494,7 @@ void HAL_FDCAN_RxFifo0Callback( FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs
  * finally we make a sum between this two values and we return the value in decimal
  * format. 
  * 
- * @param   <numberBCD>[out] Is a parameter in BCD format of 8 bits.
+ * @param   numberBCD[out] Is a parameter in BCD format of 8 bits.
  *
  * @retval  We return the value in decimal format with values between 0 to 99
  *
