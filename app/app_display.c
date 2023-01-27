@@ -123,7 +123,7 @@ void Display_Init( void )
     hlcd.SpiHandler = &SpiHandle;
     HEL_LCD_Init( &hlcd );
 
-    stateDisplay = STATE_IDLE;
+    stateDisplay = STATE_RECEPTION;
 
     tickstartWaitMessage = HAL_GetTick();
 }

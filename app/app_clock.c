@@ -147,7 +147,7 @@ void Clock_Init( void ){
 
     tickstartShowTime = HAL_GetTick();
 
-    stateClock = STATE_IDLE;
+    stateClock = STATE_RECEPTION;
 
     tickstartWaitMessage = HAL_GetTick();
 }
