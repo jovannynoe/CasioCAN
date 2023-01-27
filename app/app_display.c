@@ -41,6 +41,7 @@
 #define STATE_IDLE 0        /*!< Idle state */
 #define STATE_PRINT_TIME 1  /*!< State to print the time in LCD */
 #define STATE_PRINT_DATE 2  /*!< State to print the time in LCD */
+#define STATE_RECEPTION 3   /*!< State to read messages */ 
 /**
   @} */
 
@@ -53,6 +54,8 @@
 
 static void monthNumberToMonthWord( void );
 static void weekDayNumberToWeekDayWord( void );
+
+static APP_MsgTypeDef DisplayMsg;
 
 /**
  * @brief  Variable for LCD Handle Structure definition
@@ -67,12 +70,17 @@ static uint8_t stateDisplay;
 /**
  * @brief  Global variable because is used in two functions to manipulate the months in array
  */
-static char ClockMsgtm_mon[4];
+static char DisplayMsgtm_mon[4];
 
 /**
  * @brief  Global variable because is used in two functions to manipulate the week days in array
  */
-static char ClockMsgtm_wday[3];
+static char DisplayMsgtm_wday[3];
+
+/**
+ * @brief  Global variable to wait a message per 50 ms
+ */
+static uint32_t tickstartWaitMessage;
 
 /**
  * @brief   Display init function is to configurate the SPI peripheral to can use the LCD.
@@ -116,6 +124,8 @@ void Display_Init( void )
     HEL_LCD_Init( &hlcd );
 
     stateDisplay = STATE_IDLE;
+
+    tickstartWaitMessage = HAL_GetTick();
 }
 
 /**
@@ -133,67 +143,85 @@ void Display_Init( void )
  */
 void Display_Task( void )
 {
-    char ClockMsgtm_hour[3];
-    char ClockMsgtm_min[3];
-    char ClockMsgtm_sec[3]; 
-    char ClockMsgtm_mday[3];
-    char ClockMsgtm_year[5];
+    char DisplayMsgtm_hour[3];
+    char DisplayMsgtm_min[3];
+    char DisplayMsgtm_sec[3]; 
+    char DisplayMsgtm_mday[3];
+    char DisplayMsgtm_year[5];
 
-    switch (stateDisplay)
-    {
-    case STATE_IDLE:
+    if( (HAL_GetTick() - tickstartWaitMessage) >= 100 ){
+        tickstartWaitMessage = HAL_GetTick();
 
-        stateDisplay = STATE_PRINT_TIME;
-        break;
+        while( stateDisplay != STATE_IDLE ){
 
-    case STATE_PRINT_TIME:
+            switch (stateDisplay)
+            {
+            case STATE_IDLE:
 
-        if( ClockMsg.tm.tm_sec == 0u ){
-            HEL_LCD_Command( &hlcd, CLEAR );
-        }
+                break;
 
-        (void)itoa( ClockMsg.tm.tm_hour, ClockMsgtm_hour, 10 );
-        (void)itoa( ClockMsg.tm.tm_min, ClockMsgtm_min, 10 );
-        (void)itoa( ClockMsg.tm.tm_sec, ClockMsgtm_sec, 10 );
+            case STATE_RECEPTION:
+                if( HIL_QUEUE_IsEmpty( &DisplayQueue ) == 0 ){
 
-        HEL_LCD_SetCursor( &hlcd, 1, 3 );
-        HEL_LCD_String( &hlcd, ClockMsgtm_hour ); 
-        HEL_LCD_SetCursor( &hlcd, 1, 5 );
-        HEL_LCD_Data( &hlcd, ':' );
-        HEL_LCD_SetCursor( &hlcd, 1, 6 );
-        HEL_LCD_String( &hlcd, ClockMsgtm_min );
-        HEL_LCD_SetCursor( &hlcd, 1, 8 );
-        HEL_LCD_Data( &hlcd, ':' );
-        HEL_LCD_SetCursor( &hlcd, 1, 9 );
-        HEL_LCD_String( &hlcd, ClockMsgtm_sec );
+                    HIL_QUEUE_Read( &DisplayQueue, &DisplayMsg );
 
-        stateDisplay = STATE_PRINT_DATE;
+                    stateDisplay = STATE_PRINT_TIME;
+                }
+                else{
+                    stateDisplay = STATE_IDLE;
+                }
+                break;
+
+            case STATE_PRINT_TIME:
+
+                if( DisplayMsg.tm.tm_sec == 0u ){
+                    HEL_LCD_Command( &hlcd, CLEAR );
+                }
+
+                (void)itoa( DisplayMsg.tm.tm_hour, DisplayMsgtm_hour, 10 );
+                (void)itoa( DisplayMsg.tm.tm_min, DisplayMsgtm_min, 10 );
+                (void)itoa( DisplayMsg.tm.tm_sec, DisplayMsgtm_sec, 10 );
+
+                HEL_LCD_SetCursor( &hlcd, 1, 3 );
+                HEL_LCD_String( &hlcd, DisplayMsgtm_hour ); 
+                HEL_LCD_SetCursor( &hlcd, 1, 5 );
+                HEL_LCD_Data( &hlcd, ':' );
+                HEL_LCD_SetCursor( &hlcd, 1, 6 );
+                HEL_LCD_String( &hlcd, DisplayMsgtm_min );
+                HEL_LCD_SetCursor( &hlcd, 1, 8 );
+                HEL_LCD_Data( &hlcd, ':' );
+                HEL_LCD_SetCursor( &hlcd, 1, 9 );
+                HEL_LCD_String( &hlcd, DisplayMsgtm_sec );
+
+                stateDisplay = STATE_PRINT_DATE;
         
-        break;
+                break;
 
-    case STATE_PRINT_DATE:
-        monthNumberToMonthWord();
-        weekDayNumberToWeekDayWord();
+            case STATE_PRINT_DATE:
+                monthNumberToMonthWord();
+                weekDayNumberToWeekDayWord();
 
-        (void)itoa( ClockMsg.tm.tm_mday, ClockMsgtm_mday, 10 );
-        (void)itoa( ClockMsg.tm.tm_year, ClockMsgtm_year, 10 );
+                (void)itoa( DisplayMsg.tm.tm_mday, DisplayMsgtm_mday, 10 );
+                (void)itoa( DisplayMsg.tm.tm_year, DisplayMsgtm_year, 10 );
 
-        HEL_LCD_SetCursor( &hlcd, 0, 1 );
-        HEL_LCD_String( &hlcd, ClockMsgtm_mon );
-        HEL_LCD_SetCursor( &hlcd, 0, 4 );
-        HEL_LCD_Data( &hlcd, ',' );
-        HEL_LCD_SetCursor( &hlcd, 0, 5 );
-        HEL_LCD_String( &hlcd, ClockMsgtm_mday );
-        HEL_LCD_SetCursor( &hlcd, 0, 8 );
-        HEL_LCD_String( &hlcd, ClockMsgtm_year );
-        HEL_LCD_SetCursor( &hlcd, 0, 13 );
-        HEL_LCD_String( &hlcd, ClockMsgtm_wday );
+                HEL_LCD_SetCursor( &hlcd, 0, 1 );
+                HEL_LCD_String( &hlcd, DisplayMsgtm_mon );
+                HEL_LCD_SetCursor( &hlcd, 0, 4 );
+                HEL_LCD_Data( &hlcd, ',' );
+                HEL_LCD_SetCursor( &hlcd, 0, 5 );
+                HEL_LCD_String( &hlcd, DisplayMsgtm_mday );
+                HEL_LCD_SetCursor( &hlcd, 0, 8 );
+                HEL_LCD_String( &hlcd, DisplayMsgtm_year );
+                HEL_LCD_SetCursor( &hlcd, 0, 13 );
+                HEL_LCD_String( &hlcd, DisplayMsgtm_wday );
 
-        stateDisplay = STATE_IDLE;
-        break;
+                stateDisplay = STATE_IDLE;
+                break;
     
-    default:
-        break;
+            default:
+                break;
+            }
+        }
     }
 }
 
@@ -202,7 +230,7 @@ void Display_Task( void )
  *
  * In this function, we ask the month in number and we convert the month to word of three leters
  * and we save the month in word in a char of four elements. For example, if the month is 2(FEB), 
- * so, we convert the month to word, we save the word FEB in a char called ClockMsgtm_mon to can
+ * so, we convert the month to word, we save the word FEB in a char called DisplayMsgtm_mon to can
  * print the name in place that of the number.
  *
  * @retval  None
@@ -212,77 +240,77 @@ void monthNumberToMonthWord( void ){
     static uint8_t i;
     const uint8_t months[47] = "JAN FEB MAR APR MAY JUN JUL AUG SEP OCT NOV DEC";
 
-    switch (ClockMsg.tm.tm_mon)
+    switch (DisplayMsg.tm.tm_mon)
     {
     case JAN:
         for( i = 0u; i < 3u; i++ ){
-            ClockMsgtm_mon[i] = months[i];
+            DisplayMsgtm_mon[i] = months[i];
         }
         break;
 
     case FEB:
         for( i = 0u; i < 3u; i++ ){
-            ClockMsgtm_mon[i] = months[i+4u];
+            DisplayMsgtm_mon[i] = months[i+4u];
         }
         break;
 
     case MAR:
         for( i = 0u; i < 3u; i++ ){
-            ClockMsgtm_mon[i] = months[i+8u];
+            DisplayMsgtm_mon[i] = months[i+8u];
         }
         break;
 
     case APR:
         for( i = 0u; i < 3u; i++ ){
-            ClockMsgtm_mon[i] = months[i+12u];
+            DisplayMsgtm_mon[i] = months[i+12u];
         }
         break;
 
     case MAY:
         for( i = 0u; i < 3u; i++ ){
-            ClockMsgtm_mon[i] = months[i+16u];
+            DisplayMsgtm_mon[i] = months[i+16u];
         }
         break;
 
     case JUN:
         for( i = 0u; i < 3u; i++ ){
-            ClockMsgtm_mon[i] = months[i+20u];
+            DisplayMsgtm_mon[i] = months[i+20u];
         }
         break;
 
     case JUL:
         for( i = 0u; i < 3u; i++ ){
-            ClockMsgtm_mon[i] = months[i+24u];
+            DisplayMsgtm_mon[i] = months[i+24u];
         }
         break;
 
     case AUG:
         for( i = 0u; i < 3u; i++ ){
-            ClockMsgtm_mon[i] = months[i+28u];
+            DisplayMsgtm_mon[i] = months[i+28u];
         }
         break;
 
     case SEP:
         for( i = 0u; i < 3u; i++ ){
-            ClockMsgtm_mon[i] = months[i+32u];
+            DisplayMsgtm_mon[i] = months[i+32u];
         }
         break;
 
     case OCT:
         for( i = 0u; i < 3u; i++ ){
-            ClockMsgtm_mon[i] = months[i+36u];
+            DisplayMsgtm_mon[i] = months[i+36u];
         }
         break;
 
     case NOV:
         for( i = 0u; i < 3u; i++ ){
-            ClockMsgtm_mon[i] = months[i+40u];
+            DisplayMsgtm_mon[i] = months[i+40u];
         }
         break;
 
     case DEC:
        for( i = 0u; i < 3u; i++ ){
-            ClockMsgtm_mon[i] = months[i+44u];
+            DisplayMsgtm_mon[i] = months[i+44u];
         }
         break;
 
@@ -297,7 +325,7 @@ void monthNumberToMonthWord( void ){
  * In this function, we ask the weekday in number and we convert the weekday to word of two leters
  * and we save the weekday in word in a char of three elements. For example, if the weekday is 
  * 1(RTC_WEEKDAY_MONDAY), so, we convert the weekday to word, we save the word Mo in a char called 
- * ClockMsgtm_wday to can print the name in place that of the number.
+ * DisplayMsgtm_wday to can print the name in place that of the number.
  *
  * @retval  None
  *
@@ -306,47 +334,47 @@ void weekDayNumberToWeekDayWord( void ){
     static uint8_t i;
     const uint8_t weekDays[21] = "Mo Tu We Th Fr Sa Su";
 
-    switch (ClockMsg.tm.tm_wday)
+    switch (DisplayMsg.tm.tm_wday)
     {
     case RTC_WEEKDAY_MONDAY:
         for( i = 0u; i < 2u; i++ ){
-            ClockMsgtm_wday[i] = weekDays[i];
+            DisplayMsgtm_wday[i] = weekDays[i];
         }
         break;
 
     case RTC_WEEKDAY_TUESDAY:
         for( i = 0u; i < 2u; i++ ){
-            ClockMsgtm_wday[i] = weekDays[i+3u];
+            DisplayMsgtm_wday[i] = weekDays[i+3u];
         }
         break;
 
     case RTC_WEEKDAY_WEDNESDAY:
         for( i = 0u; i < 2u; i++ ){
-            ClockMsgtm_wday[i] = weekDays[i+6u];
+            DisplayMsgtm_wday[i] = weekDays[i+6u];
         }
         break;
 
     case RTC_WEEKDAY_THURSDAY:
         for( i = 0u; i < 2u; i++ ){
-            ClockMsgtm_wday[i] = weekDays[i+9u];
+            DisplayMsgtm_wday[i] = weekDays[i+9u];
         }
         break;
 
     case RTC_WEEKDAY_FRIDAY:
         for( i = 0u; i < 2u; i++ ){
-            ClockMsgtm_wday[i] = weekDays[i+12u];
+            DisplayMsgtm_wday[i] = weekDays[i+12u];
         }
         break;
 
     case RTC_WEEKDAY_SATURDAY:
         for( i = 0u; i < 2u; i++ ){
-            ClockMsgtm_wday[i] = weekDays[i+15u];
+            DisplayMsgtm_wday[i] = weekDays[i+15u];
         }
         break;
 
     case RTC_WEEKDAY_SUNDAY:
         for( i = 0u; i < 2u; i++ ){
-            ClockMsgtm_wday[i] = weekDays[i+18u];
+            DisplayMsgtm_wday[i] = weekDays[i+18u];
         }
         break;
 

@@ -25,7 +25,21 @@
 #include "app_bsp.h"
 #include "app_serial.h"
 #include "app_clock.h"
-#include "hil_queue.h"
+
+/** 
+  * @defgroup Buffer Maximum size to buffer used
+  @{ */
+#define BUFFER_MAX_SIZE 9u /*!< Size of buffer with elements */
+/**
+  @} */
+
+/** 
+  * @defgroup Buffer Maximum size to buffer used
+  @{ */
+#define TRUE 1u     /*!< Used to change the one per true with word */
+#define FALSE 0u    /*!< Used to change the zero per false with word */ 
+/**
+  @} */
 
 /** 
   * @defgroup States States to we know what is the state without errors
@@ -81,9 +95,21 @@
   @} */
 
 /**
+ * @brief  Global variable to use the buffer
+ */
+static uint64_t bufferSerial[BUFFER_MAX_SIZE];
+
+APP_MsgTypeDef bufferClock[45];
+
+/**
  * @brief  Variable for QUEUE Handle Structure definition
  */
-QUEUE_HandleTypeDef CANQueue;
+QUEUE_HandleTypeDef SerialQueue;
+
+/**
+ * @brief  Variable for QUEUE Handle Structure definition
+ */
+QUEUE_HandleTypeDef ClockQueue;
 
 /**
  * @brief  Variable for FDCAN Handle Structure definition
@@ -103,12 +129,7 @@ FDCAN_FilterTypeDef CANFilter;
 /**
  * @brief  Variable to can save the time, date an alarm through the structure
  */
-APP_MsgTypeDef SerialMsg;
-
-/**
- * @brief  Global variable to save the values from the CANdo
- */
-static uint8_t RxData[8];
+/*APP_MsgTypeDef SerialMsg;*/
 
 /**
  * @brief  Global variable to we use like a flag
@@ -123,7 +144,7 @@ static uint8_t stateSerial;
 /**
  * @brief  Global variable to wait a message per 10 ms
  */
-static uint8_t tickstartWaitMessage;
+static uint32_t tickstartWaitMessage;
 
 /**
  * @brief   Serial init function is to configurate the CAN protocol.
@@ -137,6 +158,16 @@ static uint8_t tickstartWaitMessage;
  */
 void Serial_Init( void )
 {
+    SerialQueue.Buffer = (void *)bufferSerial;
+    SerialQueue.Elements = BUFFER_MAX_SIZE;
+    SerialQueue.Size = sizeof( uint64_t );
+    HIL_QUEUE_Init( &SerialQueue );
+
+    ClockQueue.Buffer = (void *)bufferClock;
+    ClockQueue.Elements = 45;
+    ClockQueue.Size = sizeof( APP_MsgTypeDef );
+    HIL_QUEUE_Init( &ClockQueue );
+
     /* Declaramos las opciones para configurar el modulo FDCAN1 para transmitir al bus CAN a 100Kbps
     y sample point de 75% */
     CANHandler.Instance                 = FDCAN1;
@@ -197,258 +228,265 @@ void Serial_Init( void )
  */
 void Serial_Task( void )
 {
+    APP_MsgTypeDef SerialMsg;
     static uint8_t stateTime; 
     static uint8_t stateDate; 
     static uint8_t stateAlarm; 
     static uint8_t stateOk;
     static uint16_t year;
     static uint8_t TxData[8];
+    static uint8_t RxData[8];
     uint8_t i;
 
-    switch (stateSerial)
-    {
-    case STATE_IDLE:
-        if( (HAL_GetTick() - tickstartWaitMessage) >= 10 ){
-            tickstartWaitMessage = HAL_GetTick();
-            stateSerial = STATE_RECEPTION;
-        }
-        break;
+    if( (HAL_GetTick() - tickstartWaitMessage) >= 10 ){
+        tickstartWaitMessage = HAL_GetTick();
 
-    case STATE_RECEPTION:
-        if( HIL_QUEUE_IsEmpty( &CANQueue ) == 0u ){
+        while( stateSerial != STATE_IDLE ){
+            switch (stateSerial)
+            {
+            case STATE_IDLE:
+                /*STATE EMPTY*/
+                break;
 
-            HIL_QUEUE_Read( &CANQueue, RxData );
+            case STATE_RECEPTION:
+                if( HIL_QUEUE_IsEmptyISR( &SerialQueue, TIM16_FDCAN_IT0_IRQn ) == FALSE ){
 
-            if( flag == 1u ){
-                flag = 0u;
-                stateSerial = STATE_MESSAGE;
-            }
-        }
-        else{
-            stateSerial = STATE_IDLE;
-        }
-        break;
+                    HIL_QUEUE_ReadISR( &SerialQueue, RxData, TIM16_FDCAN_IT0_IRQn );
+
+                    if( flag == 1u ){
+                        flag = 0u;
+                        stateSerial = STATE_MESSAGE;
+                    }
+                }
+                else{
+                    stateSerial = STATE_IDLE;
+                }
+                break;
     
-    case STATE_MESSAGE:
+            case STATE_MESSAGE:
 
-        if( RxData[1] == (uint8_t)SERIAL_MSG_TIME ){
-            RxData[2] = BCDFormatToDecimalFormat(RxData[2]);
-            RxData[3] = BCDFormatToDecimalFormat(RxData[3]);
-            RxData[4] = BCDFormatToDecimalFormat(RxData[4]);
-            stateTime = STATE_HOURS;
-            stateSerial = STATE_TIME;
-        }
-        else if( RxData[1] == (uint8_t)SERIAL_MSG_DATE ){
-            RxData[2] = BCDFormatToDecimalFormat(RxData[2]);
-            RxData[3] = BCDFormatToDecimalFormat(RxData[3]);
-            RxData[4] = BCDFormatToDecimalFormat(RxData[4]);
-            RxData[5] = BCDFormatToDecimalFormat(RxData[5]);
-            stateDate = STATE_MONTH;
-            stateSerial = STATE_DATE;
-        }
-        else if( RxData[1] == (uint8_t)SERIAL_MSG_ALARM ){
-            RxData[2] = BCDFormatToDecimalFormat(RxData[2]);
-            RxData[3] = BCDFormatToDecimalFormat(RxData[3]);
-            stateAlarm = STATE_HOURS;
-            stateSerial = STATE_ALARM;
-        }
-        else{
-            stateSerial = STATE_ERROR;
-        }
-        break;
-
-    case STATE_TIME:
-
-        switch (stateTime)
-        {
-        case STATE_HOURS:
-            if( RxData[2] <= 23u ){
-                stateTime = STATE_MINUTES;
-            }
-            else{
-                stateSerial = STATE_ERROR;
-            }
-            break;
-
-        case STATE_MINUTES:
-            if( RxData[3] <= 59u ){
-                stateTime = STATE_SECONDS;
-            }
-            else{
-                stateSerial = STATE_ERROR;
-            }
-            break;
-        
-        case STATE_SECONDS:
-            if( RxData[4] <= 59u ){
-                stateOk = STATE_TIME;
-                stateSerial = STATE_OK;
-            }
-            else{
-                stateSerial = STATE_ERROR;
-            }
-            break;
-        
-        default:
-            break;
-        }
-        break;
-
-    case STATE_DATE:
-
-        switch (stateDate)
-        {
-        case STATE_DAY:
-            if( (RxData[3] == JAN) || (RxData[3] == MAR) || (RxData[3] == MAY) || (RxData[3] == JUL) || (RxData[3] == AUG) || (RxData[3] == OCT) || (RxData[3] == DEC) ){
-                if( (RxData[2] <= 31u) && (RxData[2] > 0u) ){
-                    stateOk = STATE_DATE;
-                    stateSerial = STATE_OK;
-                }  
-                else{
-                    stateSerial = STATE_ERROR;
+                if( RxData[1] == (uint8_t)SERIAL_MSG_TIME ){
+                    RxData[2] = BCDFormatToDecimalFormat(RxData[2]);
+                    RxData[3] = BCDFormatToDecimalFormat(RxData[3]);
+                    RxData[4] = BCDFormatToDecimalFormat(RxData[4]);
+                    stateTime = STATE_HOURS;
+                    stateSerial = STATE_TIME;
                 }
-            }
-            else if( (RxData[3] == APR) || (RxData[3] == JUN) || (RxData[3] == SEP) || (RxData[3] == NOV) ){
-                if( (RxData[2] <= 30u) && (RxData[2] > 0u) ){
-                    stateOk = STATE_DATE;
-                    stateSerial = STATE_OK;
+                else if( RxData[1] == (uint8_t)SERIAL_MSG_DATE ){
+                    RxData[2] = BCDFormatToDecimalFormat(RxData[2]);
+                    RxData[3] = BCDFormatToDecimalFormat(RxData[3]);
+                    RxData[4] = BCDFormatToDecimalFormat(RxData[4]);
+                    RxData[5] = BCDFormatToDecimalFormat(RxData[5]);
+                    stateDate = STATE_MONTH;
+                    stateSerial = STATE_DATE;
+                }
+                else if( RxData[1] == (uint8_t)SERIAL_MSG_ALARM ){
+                    RxData[2] = BCDFormatToDecimalFormat(RxData[2]);
+                    RxData[3] = BCDFormatToDecimalFormat(RxData[3]);
+                    stateAlarm = STATE_HOURS;
+                    stateSerial = STATE_ALARM;
                 }
                 else{
                     stateSerial = STATE_ERROR;
                 }
-            }
-            else if( RxData[3] == FEB ){
-                if( (year % 4u) == 0u ){
-                    if( (RxData[2] <= 29u) && (RxData[2] > 0u) ){
-                        stateOk = STATE_DATE;
-                        stateSerial = STATE_OK;
-                    } 
+                break;
+
+            case STATE_TIME:
+
+                switch (stateTime)
+                {
+                case STATE_HOURS:
+                    if( RxData[2] <= 23u ){
+                        stateTime = STATE_MINUTES;
+                    }
                     else{
                         stateSerial = STATE_ERROR;
                     }
-                }
-                else if( (year % 4u) != 0u ){
-                    if( (RxData[2] <= 28u) && (RxData[2] > 0u) ){
-                        stateOk = STATE_DATE;
+                    break;
+
+                case STATE_MINUTES:
+                    if( RxData[3] <= 59u ){
+                        stateTime = STATE_SECONDS;
+                    }
+                    else{
+                        stateSerial = STATE_ERROR;
+                    }
+                    break;
+        
+                case STATE_SECONDS:
+                    if( RxData[4] <= 59u ){
+                        stateOk = STATE_TIME;
                         stateSerial = STATE_OK;
                     }
                     else{
                         stateSerial = STATE_ERROR;
                     }
+                    break;
+        
+                default:
+                    break;
                 }
-                else{
+                break;
+
+            case STATE_DATE:
+
+                switch (stateDate)
+                {
+                case STATE_DAY:
+                    if( (RxData[3] == JAN) || (RxData[3] == MAR) || (RxData[3] == MAY) || (RxData[3] == JUL) || (RxData[3] == AUG) || (RxData[3] == OCT) || (RxData[3] == DEC) ){
+                        if( (RxData[2] <= 31u) && (RxData[2] > 0u) ){
+                            stateOk = STATE_DATE;
+                            stateSerial = STATE_OK;
+                        }  
+                        else{
+                            stateSerial = STATE_ERROR;
+                        }
+                    }
+                    else if( (RxData[3] == APR) || (RxData[3] == JUN) || (RxData[3] == SEP) || (RxData[3] == NOV) ){
+                        if( (RxData[2] <= 30u) && (RxData[2] > 0u) ){
+                            stateOk = STATE_DATE;
+                            stateSerial = STATE_OK;
+                        }
+                        else{
+                            stateSerial = STATE_ERROR;
+                        }
+                    }
+                    else if( RxData[3] == FEB ){
+                        if( (year % 4u) == 0u ){
+                            if( (RxData[2] <= 29u) && (RxData[2] > 0u) ){
+                                stateOk = STATE_DATE;
+                                stateSerial = STATE_OK;
+                            } 
+                            else{
+                                stateSerial = STATE_ERROR;
+                            }
+                        }
+                        else if( (year % 4u) != 0u ){
+                            if( (RxData[2] <= 28u) && (RxData[2] > 0u) ){
+                                stateOk = STATE_DATE;
+                                stateSerial = STATE_OK;
+                            }
+                            else{
+                                stateSerial = STATE_ERROR;
+                            }
+                        }
+                        else{
+                        }
+                    }
+                    else{
+                    }
+                    break;
+        
+                case STATE_MONTH:
+                    if( (RxData[3] <= 12u) && (RxData[3] > 0u) ){
+                        stateDate = STATE_YEAR;
+                    }
+                    else{
+                        stateSerial = STATE_ERROR;
+                    }
+                    break;
+        
+                case STATE_YEAR:
+                    year = (RxData[4] * 100u) + RxData[5];    
+
+                    if( (year >= 1900u) && (year <= 2100u) ){
+                        stateDate = STATE_DAY;
+                    }
+                    else{
+                        stateSerial = STATE_ERROR;
+                    }
+                    break;
+        
+                default:
+                    break;
                 }
-            }
-            else{
-            }
-            break;
+                break;
+
+            case STATE_ALARM:
+
+                switch (stateAlarm)
+                {
+                case STATE_HOURS:
+                    if( RxData[2] <= 23u ){
+                        stateAlarm = STATE_MINUTES;
+                    }
+                    else{
+                        stateSerial = STATE_ERROR;
+                    }
+                    break;
         
-        case STATE_MONTH:
-            if( (RxData[3] <= 12u) && (RxData[3] > 0u) ){
-                stateDate = STATE_YEAR;
-            }
-            else{
-                stateSerial = STATE_ERROR;
-            }
-            break;
+                case STATE_MINUTES:
+                    if( RxData[3] <= 59u ){
+                        stateOk = STATE_ALARM;
+                        stateSerial = STATE_OK;
+                    }
+                    else{
+                        stateSerial = STATE_ERROR;
+                    }
+                    break;
         
-        case STATE_YEAR:
-            year = (RxData[4] * 100u) + RxData[5];    
+                default:
+                    break;
+                }
+                break;
 
-            if( (year >= 1900u) && (year <= 2100u) ){
-                stateDate = STATE_DAY;
-            }
-            else{
-                stateSerial = STATE_ERROR;
-            }
-            break;
+            case STATE_OK:
+                TxData[0] = RxData[0];
+
+                for( i = 1u; i < 8u; i++ ){
+                    TxData[i] = OK_TRANSMIT;
+                }
+
+                HAL_FDCAN_AddMessageToTxFifoQ( &CANHandler, &CANTxHeader, TxData );
+
+                switch (stateOk)
+                {
+                case STATE_TIME:
+                    SerialMsg.tm.tm_hour = RxData[2];
+                    SerialMsg.tm.tm_min = RxData[3];
+                    SerialMsg.tm.tm_sec = RxData[4];
+                    SerialMsg.msg = STATE_TIME;
+                    HIL_QUEUE_Write( &ClockQueue, &SerialMsg );
+                    break;
         
-        default:
-            break;
-        }
-        break;
+                case STATE_DATE:
+                    SerialMsg.tm.tm_mday = RxData[2];
+                    SerialMsg.tm.tm_mon = RxData[3];
+                    SerialMsg.tm.tm_year = year;
+                    SerialMsg.msg = STATE_DATE;
+                    HIL_QUEUE_Write( &ClockQueue, &SerialMsg );
+                    break;
 
-    case STATE_ALARM:
-
-        switch (stateAlarm)
-        {
-        case STATE_HOURS:
-            if( RxData[2] <= 23u ){
-                stateAlarm = STATE_MINUTES;
-            }
-            else{
-                stateSerial = STATE_ERROR;
-            }
-            break;
+                case STATE_ALARM:
+                    SerialMsg.tm.tm_hour = RxData[2];
+                    SerialMsg.tm.tm_min = RxData[3];
+                    SerialMsg.msg = STATE_ALARM;
+                    HIL_QUEUE_Write( &ClockQueue, &SerialMsg );
+                    break;
         
-        case STATE_MINUTES:
-            if( RxData[3] <= 59u ){
-                stateOk = STATE_ALARM;
-                stateSerial = STATE_OK;
-            }
-            else{
-                stateSerial = STATE_ERROR;
-            }
-            break;
-        
-        default:
-            break;
-        }
-        break;
+                default:
+                    break;
+                }
 
-    case STATE_OK:
-        TxData[0] = RxData[0];
+                stateSerial = STATE_RECEPTION;
+                break;
 
-        for( i = 1u; i < 8u; i++ ){
-            TxData[i] = OK_TRANSMIT;
-        }
+            case STATE_ERROR:
+                TxData[0] = RxData[0];
 
-        HAL_FDCAN_AddMessageToTxFifoQ( &CANHandler, &CANTxHeader, TxData );
+                for( i = 1u; i < 8u; i++ ){
+                    TxData[i] = ERROR_TRANSMIT;
+                }
 
-        switch (stateOk)
-        {
-        case STATE_TIME:
-            SerialMsg.tm.tm_hour = RxData[2];
-            SerialMsg.tm.tm_min = RxData[3];
-            SerialMsg.tm.tm_sec = RxData[4];
-            SerialMsg.msg = STATE_TIME;
-            break;
-        
-        case STATE_DATE:
-            SerialMsg.tm.tm_mday = RxData[2];
-            SerialMsg.tm.tm_mon = RxData[3];
-            SerialMsg.tm.tm_year = year;
-            
-            SerialMsg.msg = STATE_DATE;
-            break;
+                HAL_FDCAN_AddMessageToTxFifoQ( &CANHandler, &CANTxHeader, TxData );
 
-        case STATE_ALARM:
-            SerialMsg.tm.tm_hour = RxData[2];
-            SerialMsg.tm.tm_min = RxData[3];
-            SerialMsg.msg = STATE_ALARM;
-            break;
-        
-        default:
-            break;
-        }
-
-        stateSerial = STATE_RECEPTION;
-        break;
-
-    case STATE_ERROR:
-        TxData[0] = RxData[0];
-
-        for( i = 1u; i < 8u; i++ ){
-            TxData[i] = ERROR_TRANSMIT;
-        }
-
-        HAL_FDCAN_AddMessageToTxFifoQ( &CANHandler, &CANTxHeader, TxData );
-
-        stateSerial = STATE_RECEPTION;
-        break;
+                stateSerial = STATE_RECEPTION;
+                break;
     
-    default:
-        break;
+            default:
+                break;
+            }
+        }
     }
 }
 
@@ -460,8 +498,8 @@ void Serial_Task( void )
  * because this byte is CAN-TP, so, if this byte is correct, flag receive 1 and stateSerial
  * receive idle state if this byte isn't correct, so we go to error state.  
  * 
- * @param   hfdcan[out] Is a parameter that the function needs to work.
- * @param   RxFifo0ITs[out] Is a parameter that the function needs to work.
+ * @param   hfdcan Is a parameter that the function needs to work.
+ * @param   RxFifo0ITs Is a parameter that the function needs to work.
  *
  * @retval  None
  *
@@ -469,14 +507,17 @@ void Serial_Task( void )
 void HAL_FDCAN_RxFifo0Callback( FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs )
 {
     FDCAN_RxHeaderTypeDef CANRxHeader;
+    static uint8_t RxData[8];
+
     /*A llegado un mensaje via CAN, interrogamos si fue un solo mensaje*/
-    if( (RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != 0u ){
+    if( (RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != FALSE ){
         /* Retrieve Rx messages from RX FIFO0 */
         HAL_FDCAN_GetRxMessage( hfdcan, FDCAN_RX_FIFO0, &CANRxHeader, RxData );
 
         if( RxData[0] == CAN_TP ){
-            flag = 1u;
-            stateSerial = STATE_IDLE;
+            HIL_QUEUE_Write( &SerialQueue, RxData );
+            flag = TRUE;
+            stateSerial = STATE_RECEPTION;
         }
         else{
             stateSerial = STATE_ERROR;

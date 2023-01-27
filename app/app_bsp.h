@@ -13,6 +13,7 @@
 
     #include "stm32g0xx.h"
     #include "hel_lcd.h"
+    #include "hil_queue.h"
     #include <stdint.h>
     
 #endif
