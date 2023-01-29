@@ -63,11 +63,6 @@ static APP_MsgTypeDef DisplayMsg;
 LCD_HandleTypeDef hlcd;
 
 /**
- * @brief  Global variable because is used in two functions to manage the state machine
- */
-static uint8_t stateDisplay;
-
-/**
  * @brief  Global variable because is used in two functions to manipulate the months in array
  */
 static char DisplayMsgtm_mon[4];
@@ -123,8 +118,6 @@ void Display_Init( void )
     hlcd.SpiHandler = &SpiHandle;
     HEL_LCD_Init( &hlcd );
 
-    stateDisplay = STATE_RECEPTION;
-
     tickstartWaitMessage = HAL_GetTick();
 }
 
@@ -143,11 +136,14 @@ void Display_Init( void )
  */
 void Display_Task( void )
 {
+    uint8_t stateDisplay;
     char DisplayMsgtm_hour[3];
     char DisplayMsgtm_min[3];
     char DisplayMsgtm_sec[3]; 
     char DisplayMsgtm_mday[3];
     char DisplayMsgtm_year[5];
+
+    stateDisplay = STATE_RECEPTION;
 
     if( (HAL_GetTick() - tickstartWaitMessage) >= 100 ){
         tickstartWaitMessage = HAL_GetTick();
@@ -157,7 +153,7 @@ void Display_Task( void )
             switch (stateDisplay)
             {
             case STATE_IDLE:
-
+                /*STATE EMPTY*/
                 break;
 
             case STATE_RECEPTION:
@@ -170,6 +166,7 @@ void Display_Task( void )
                 else{
                     stateDisplay = STATE_IDLE;
                 }
+                
                 break;
 
             case STATE_PRINT_TIME:
@@ -215,7 +212,8 @@ void Display_Task( void )
                 HEL_LCD_SetCursor( &hlcd, 0, 13 );
                 HEL_LCD_String( &hlcd, DisplayMsgtm_wday );
 
-                stateDisplay = STATE_IDLE;
+                stateDisplay = STATE_RECEPTION;
+
                 break;
     
             default:

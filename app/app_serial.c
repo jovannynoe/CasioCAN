@@ -25,6 +25,7 @@
 #include "app_bsp.h"
 #include "app_serial.h"
 #include "app_clock.h"
+#include "app_display.h"
 
 /** 
   * @defgroup Buffer Maximum size to buffer used
@@ -95,10 +96,13 @@
   @} */
 
 /**
- * @brief  Global variable to use the buffer
+ * @brief  Global variable to use the buffer to CAN
  */
 static uint64_t bufferSerial[BUFFER_MAX_SIZE];
 
+/**
+ * @brief  APP MSG Structure definition to use the buffer between Serial and Clock
+ */
 APP_MsgTypeDef bufferClock[45];
 
 /**
@@ -235,7 +239,7 @@ void Serial_Task( void )
     static uint8_t stateOk;
     static uint16_t year;
     static uint8_t TxData[8];
-    static uint8_t RxData[8];
+    uint8_t RxData[8];
     uint8_t i;
 
     if( (HAL_GetTick() - tickstartWaitMessage) >= 10 ){
@@ -252,7 +256,7 @@ void Serial_Task( void )
                 if( HIL_QUEUE_IsEmptyISR( &SerialQueue, TIM16_FDCAN_IT0_IRQn ) == FALSE ){
 
                     HIL_QUEUE_ReadISR( &SerialQueue, RxData, TIM16_FDCAN_IT0_IRQn );
-
+                
                     if( flag == 1u ){
                         flag = 0u;
                         stateSerial = STATE_MESSAGE;
@@ -446,7 +450,7 @@ void Serial_Task( void )
                     SerialMsg.tm.tm_min = RxData[3];
                     SerialMsg.tm.tm_sec = RxData[4];
                     SerialMsg.msg = STATE_TIME;
-                    HIL_QUEUE_Write( &ClockQueue, &SerialMsg );
+                    HIL_QUEUE_WriteISR( &ClockQueue, &SerialMsg, TIM16_FDCAN_IT0_IRQn );
                     break;
         
                 case STATE_DATE:
@@ -454,14 +458,14 @@ void Serial_Task( void )
                     SerialMsg.tm.tm_mon = RxData[3];
                     SerialMsg.tm.tm_year = year;
                     SerialMsg.msg = STATE_DATE;
-                    HIL_QUEUE_Write( &ClockQueue, &SerialMsg );
+                    HIL_QUEUE_WriteISR( &ClockQueue, &SerialMsg, TIM16_FDCAN_IT0_IRQn );
                     break;
 
                 case STATE_ALARM:
                     SerialMsg.tm.tm_hour = RxData[2];
                     SerialMsg.tm.tm_min = RxData[3];
                     SerialMsg.msg = STATE_ALARM;
-                    HIL_QUEUE_Write( &ClockQueue, &SerialMsg );
+                    HIL_QUEUE_WriteISR( &ClockQueue, &SerialMsg, TIM16_FDCAN_IT0_IRQn );
                     break;
         
                 default:
@@ -507,7 +511,7 @@ void Serial_Task( void )
 void HAL_FDCAN_RxFifo0Callback( FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs )
 {
     FDCAN_RxHeaderTypeDef CANRxHeader;
-    static uint8_t RxData[8];
+    uint8_t RxData[8];
 
     /*A llegado un mensaje via CAN, interrogamos si fue un solo mensaje*/
     if( (RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != FALSE ){

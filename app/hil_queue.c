@@ -14,6 +14,8 @@ void HIL_QUEUE_Init( QUEUE_HandleTypeDef *hqueue )
     hqueue->Tail = ZERO;
     hqueue->Empty = ONE;
     hqueue->Full = ZERO;
+    hqueue->CounterWrite = ZERO;
+    hqueue->CounterRead = ZERO;
 }
 
 uint8_t HIL_QUEUE_Write( QUEUE_HandleTypeDef *hqueue, void *data )
@@ -23,10 +25,12 @@ uint8_t HIL_QUEUE_Write( QUEUE_HandleTypeDef *hqueue, void *data )
     if( hqueue->Full == ZERO ){
         memcpy( hqueue->Buffer + hqueue->Head, data, hqueue->Size );
         hqueue->Head += hqueue->Size % hqueue->Elements;
-        hqueue->Counter++;
+        hqueue->CounterWrite++;
 
-        if( hqueue->Counter == hqueue->Elements ){
+        if( hqueue->CounterWrite == hqueue->Elements ){
             hqueue->Full = ONE;
+            hqueue->Head = ZERO;
+            hqueue->CounterWrite = ZERO;
         }
         else{    
         }
@@ -47,8 +51,14 @@ uint8_t HIL_QUEUE_Read( QUEUE_HandleTypeDef *hqueue, void *data )
     if( HIL_QUEUE_IsEmpty( hqueue ) == ZERO ){
         memcpy( data, hqueue->Buffer + hqueue->Tail, hqueue->Size );
         hqueue->Tail += hqueue->Size % hqueue->Elements;
-        hqueue->Full = ZERO;
+        hqueue->CounterRead++;
         readingIsSuccessful = ONE;
+
+        if( hqueue->CounterRead == hqueue->Elements ){
+            hqueue->Full = ZERO;
+            hqueue->CounterRead = ZERO;
+            hqueue->Tail = ZERO;
+        }
     }
     else{
         readingIsSuccessful = ZERO;
@@ -75,6 +85,8 @@ void HIL_QUEUE_Flush( QUEUE_HandleTypeDef *hqueue )
     hqueue->Tail = ZERO;
     hqueue->Empty = ONE;
     hqueue->Full = ZERO;
+    hqueue->CounterWrite = ZERO;
+    hqueue->CounterRead = ZERO;
     memset( hqueue->Buffer, ' ', strlen(hqueue->Buffer) );
 }
 
@@ -120,7 +132,7 @@ uint8_t HIL_QUEUE_ReadISR( QUEUE_HandleTypeDef *hqueue, void *data, uint8_t isr 
         HAL_NVIC_DisableIRQ( isr );
     }
 
-    readingIsSuccessful = HIL_QUEUE_Read( hqueue, data );
+    readingIsSuccessful = HIL_QUEUE_Read( hqueue, data );   
 
     if( isr == ALL_VECTORS ){
         for( i = 0; i <= 30; i++ ){

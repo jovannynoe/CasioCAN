@@ -17,7 +17,9 @@ typedef struct
 
     uint8_t     Full;       //bandera que indica si no se puede seguir escribiendo mas elementos
 
-    uint8_t     Counter;
+    uint8_t     CounterWrite;
+
+    uint8_t     CounterRead;
 
 }QUEUE_HandleTypeDef;
 

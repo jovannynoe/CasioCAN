@@ -85,7 +85,7 @@ int main( void )
         Clock_Task();
         Display_Task();
         Heart_Beat();
-        Peth_The_Dog();
+        //Peth_The_Dog();
     }
 }
 
