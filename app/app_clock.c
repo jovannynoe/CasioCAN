@@ -197,15 +197,12 @@ void Clock_Task( void ){
                     if( ClockMsg.msg != (uint8_t)SERIAL_MSG_NONE ){
                         if( ClockMsg.msg == (uint8_t)SERIAL_MSG_TIME ){
                             stateClock = STATE_CHANGE_TIME;
-                            ClockMsg.msg = SERIAL_MSG_NONE;
                         }
                         else if( ClockMsg.msg == (uint8_t)SERIAL_MSG_DATE ){
                             stateClock = STATE_CHANGE_DATE;
-                            ClockMsg.msg = SERIAL_MSG_NONE;
                         }
                         else if( ClockMsg.msg == (uint8_t)SERIAL_MSG_ALARM ){
                             stateClock = STATE_CHANGE_ALARM;
-                            ClockMsg.msg = SERIAL_MSG_NONE;
                         }
                         else{ 
                         }

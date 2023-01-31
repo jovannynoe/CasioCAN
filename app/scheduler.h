@@ -15,9 +15,11 @@ typedef struct _scheduler
 
 typedef struct _task
 {
-    uint32_t period;          /*How often the task shopud run in ms*/
+    uint32_t period;          /*How often the task should run in ms*/
 
-    uint32_t elapsed;         /*the cuurent elapsed time*/
+    uint32_t elapsed;         /*the current elapsed time*/
+
+    uint8_t startTask;
 
     void (*initFunc)(void);   /*pointer to init task function*/
 
