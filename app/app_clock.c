@@ -92,8 +92,6 @@ static uint64_t tickstartShowTime;
  */
 static uint64_t tickstartClockFile;
 
-static GPIO_InitTypeDef GPIO_InitStructTest; 
-
 /**
  * @brief   Clock init function is to configurate the RTC peripheral.
  *
@@ -147,14 +145,6 @@ void Clock_Init( void ){
 
     tickstartShowTime = HAL_GetTick();
     tickstartClockFile = HAL_GetTick();
-
-    __GPIOC_CLK_ENABLE();
-
-    GPIO_InitStructTest.Pin  = 0xFF;
-    GPIO_InitStructTest.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStructTest.Pull = GPIO_NOPULL;
-    GPIO_InitStructTest.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init( GPIOC, &GPIO_InitStructTest );
 }
 
 /**
@@ -192,7 +182,7 @@ void Clock_Task( void ){
             case STATE_RECEPTION:
                 if( HIL_QUEUE_IsEmpty( &ClockQueue ) == 0u ){
 
-                    HIL_QUEUE_Read( &ClockQueue, &ClockMsg );
+                    (void)HIL_QUEUE_Read( &ClockQueue, &ClockMsg );
 
                     if( ClockMsg.msg != (uint8_t)SERIAL_MSG_NONE ){
                         if( ClockMsg.msg == (uint8_t)SERIAL_MSG_TIME ){
@@ -232,7 +222,7 @@ void Clock_Task( void ){
                 ClockMsg.tm.tm_mon = sDate.Month;
                 ClockMsg.tm.tm_wday = sDate.WeekDay;
                 ClockMsg.tm.tm_year = (yearMSB * ONE_HUNDRED) + sDate.Year;
-                HIL_QUEUE_Write( &DisplayQueue, &ClockMsg );
+                (void)HIL_QUEUE_Write( &DisplayQueue, &ClockMsg );
 
                 ClockMsg.msg = (uint8_t)SERIAL_MSG_NONE;
 
