@@ -161,10 +161,12 @@ void HEL_LCD_Data( LCD_HandleTypeDef *hlcd, uint8_t data )
  */
 void HEL_LCD_String( LCD_HandleTypeDef *hlcd, char *str )
 {
-    while ( *str != '\0' )
+    uint8_t i = 0u;
+
+    while ( str[i] != '\0' )
     {
-        HEL_LCD_Data( hlcd, *str );
-        str++;
+        HEL_LCD_Data( hlcd, str[i] );
+        i++;
     }
 }
 

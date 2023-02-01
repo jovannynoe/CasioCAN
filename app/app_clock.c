@@ -88,11 +88,6 @@ static RTC_AlarmTypeDef sAlarm = {0};
 static uint64_t tickstartShowTime;
 
 /**
- * @brief  Global variable to wait a message per 50 ms
- */
-static uint64_t tickstartClockFile;
-
-/**
  * @brief   Clock init function is to configurate the RTC peripheral.
  *
  * In this function we go to configurate the RTC peripheral, also the 
@@ -144,7 +139,6 @@ void Clock_Init( void ){
     HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BCD );
 
     tickstartShowTime = HAL_GetTick();
-    tickstartClockFile = HAL_GetTick();
 }
 
 /**
@@ -167,115 +161,111 @@ void Clock_Task( void ){
     uint8_t stateClock;
 
     stateClock = STATE_RECEPTION;
+    
+    while( stateClock != STATE_IDLE ){
 
-    if( (HAL_GetTick() - tickstartClockFile) >= 50 ){
-        tickstartClockFile = HAL_GetTick();
+        switch (stateClock)
+        {
+        case STATE_IDLE:
+            /*STATE EMPTY*/
+            break;
 
-        while( stateClock != STATE_IDLE ){
+        case STATE_RECEPTION:
+            if( HIL_QUEUE_IsEmpty( &ClockQueue ) == 0u ){
 
-            switch (stateClock)
-            {
-            case STATE_IDLE:
-                /*STATE EMPTY*/
-                break;
+                (void)HIL_QUEUE_Read( &ClockQueue, &ClockMsg );
 
-            case STATE_RECEPTION:
-                if( HIL_QUEUE_IsEmpty( &ClockQueue ) == 0u ){
-
-                    (void)HIL_QUEUE_Read( &ClockQueue, &ClockMsg );
-
-                    if( ClockMsg.msg != (uint8_t)SERIAL_MSG_NONE ){
-                        if( ClockMsg.msg == (uint8_t)SERIAL_MSG_TIME ){
-                            stateClock = STATE_CHANGE_TIME;
-                        }
-                        else if( ClockMsg.msg == (uint8_t)SERIAL_MSG_DATE ){
-                            stateClock = STATE_CHANGE_DATE;
-                        }
-                        else if( ClockMsg.msg == (uint8_t)SERIAL_MSG_ALARM ){
-                            stateClock = STATE_CHANGE_ALARM;
-                        }
-                        else{ 
-                        }
+                if( ClockMsg.msg != (uint8_t)SERIAL_MSG_NONE ){
+                    if( ClockMsg.msg == (uint8_t)SERIAL_MSG_TIME ){
+                        stateClock = STATE_CHANGE_TIME;
                     }
-                    else{
+                    else if( ClockMsg.msg == (uint8_t)SERIAL_MSG_DATE ){
+                        stateClock = STATE_CHANGE_DATE;
+                    }
+                    else if( ClockMsg.msg == (uint8_t)SERIAL_MSG_ALARM ){
+                        stateClock = STATE_CHANGE_ALARM;
+                    }
+                    else{ 
                     }
                 }
                 else{
-                    stateClock = STATE_IDLE;
                 }
-
-                if( (HAL_GetTick() - tickstartShowTime) >= 1000 ){
-                    tickstartShowTime = HAL_GetTick();
-                    stateClock = STATE_GET_TIME_AND_DATE;
-                }
-                break;
-    
-            case STATE_GET_TIME_AND_DATE:
-                HAL_RTC_GetTime( &hrtc, &sTime, RTC_FORMAT_BIN );
-                HAL_RTC_GetDate( &hrtc, &sDate, RTC_FORMAT_BIN );
-
-                ClockMsg.tm.tm_hour = sTime.Hours;
-                ClockMsg.tm.tm_min = sTime.Minutes;
-                ClockMsg.tm.tm_sec = sTime.Seconds;
-
-                ClockMsg.tm.tm_mday = sDate.Date;
-                ClockMsg.tm.tm_mon = sDate.Month;
-                ClockMsg.tm.tm_wday = sDate.WeekDay;
-                ClockMsg.tm.tm_year = (yearMSB * ONE_HUNDRED) + sDate.Year;
-                (void)HIL_QUEUE_Write( &DisplayQueue, &ClockMsg );
-
-                ClockMsg.msg = (uint8_t)SERIAL_MSG_NONE;
-
-                stateClock = STATE_RECEPTION;
-                break;
-
-            case STATE_GET_ALARM:
-                HAL_RTC_GetAlarm( &hrtc, &sAlarm, RTC_ALARM_A, RTC_FORMAT_BIN );
-
-                /*ClockMsg.msg = SERIAL_MSG_ALARM;
-                ClockMsg.tm.tm_hour = sAlarm.AlarmTime.Hours;
-                ClockMsg.tm.tm_min = sAlarm.AlarmTime.Minutes;*/
-                
-                stateClock = STATE_RECEPTION;
-                break;
-
-            case STATE_CHANGE_TIME:
-
-                sTime.Hours = ClockMsg.tm.tm_hour;
-                sTime.Minutes = ClockMsg.tm.tm_min;
-                sTime.Seconds = ClockMsg.tm.tm_sec;
-                HAL_RTC_SetTime( &hrtc, &sTime, RTC_FORMAT_BIN );
-
-                ClockMsg.msg = (uint8_t)SERIAL_MSG_TIME;
-
-                stateClock = STATE_GET_TIME_AND_DATE;
-                break;
-
-            case STATE_CHANGE_DATE:
-                yearMSB = (ClockMsg.tm.tm_year / ONE_HUNDRED);
-
-                sDate.Date = ClockMsg.tm.tm_mday;
-                sDate.Month = ClockMsg.tm.tm_mon; 
-                sDate.Year = (ClockMsg.tm.tm_year % ONE_HUNDRED);
-                HAL_RTC_SetDate( &hrtc, &sDate, RTC_FORMAT_BIN );
-
-                ClockMsg.msg = (uint8_t)SERIAL_MSG_DATE;
-
-                stateClock = STATE_GET_TIME_AND_DATE;
-                break;
-
-            case STATE_CHANGE_ALARM:
-
-                sAlarm.AlarmTime.Hours = ClockMsg.tm.tm_hour;
-                sAlarm.AlarmTime.Minutes = ClockMsg.tm.tm_min;
-                HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BIN );
-
-                stateClock = STATE_GET_ALARM;
-                break;
-    
-            default:
-              break;
             }
+            else{
+                stateClock = STATE_IDLE;
+            }
+
+            if( (HAL_GetTick() - tickstartShowTime) >= 1000 ){
+                tickstartShowTime = HAL_GetTick();
+                stateClock = STATE_GET_TIME_AND_DATE;
+            }
+            break;
+    
+        case STATE_GET_TIME_AND_DATE:
+            HAL_RTC_GetTime( &hrtc, &sTime, RTC_FORMAT_BIN );
+            HAL_RTC_GetDate( &hrtc, &sDate, RTC_FORMAT_BIN );
+
+            ClockMsg.tm.tm_hour = sTime.Hours;
+            ClockMsg.tm.tm_min = sTime.Minutes;
+            ClockMsg.tm.tm_sec = sTime.Seconds;
+
+            ClockMsg.tm.tm_mday = sDate.Date;
+            ClockMsg.tm.tm_mon = sDate.Month;
+            ClockMsg.tm.tm_wday = sDate.WeekDay;
+            ClockMsg.tm.tm_year = (yearMSB * ONE_HUNDRED) + sDate.Year;
+            (void)HIL_QUEUE_Write( &DisplayQueue, &ClockMsg );
+
+            ClockMsg.msg = (uint8_t)SERIAL_MSG_NONE;
+
+            stateClock = STATE_RECEPTION;
+            break;
+
+        case STATE_GET_ALARM:
+            HAL_RTC_GetAlarm( &hrtc, &sAlarm, RTC_ALARM_A, RTC_FORMAT_BIN );
+
+            /*ClockMsg.msg = SERIAL_MSG_ALARM;
+            ClockMsg.tm.tm_hour = sAlarm.AlarmTime.Hours;
+            ClockMsg.tm.tm_min = sAlarm.AlarmTime.Minutes;*/
+                
+            stateClock = STATE_RECEPTION;
+            break;
+
+        case STATE_CHANGE_TIME:
+
+            sTime.Hours = ClockMsg.tm.tm_hour;
+            sTime.Minutes = ClockMsg.tm.tm_min;
+            sTime.Seconds = ClockMsg.tm.tm_sec;
+            HAL_RTC_SetTime( &hrtc, &sTime, RTC_FORMAT_BIN );
+
+            ClockMsg.msg = (uint8_t)SERIAL_MSG_TIME;
+
+            stateClock = STATE_GET_TIME_AND_DATE;
+            break;
+
+        case STATE_CHANGE_DATE:
+            yearMSB = (ClockMsg.tm.tm_year / ONE_HUNDRED);
+
+            sDate.Date = ClockMsg.tm.tm_mday;
+            sDate.Month = ClockMsg.tm.tm_mon; 
+            sDate.Year = (ClockMsg.tm.tm_year % ONE_HUNDRED);
+            HAL_RTC_SetDate( &hrtc, &sDate, RTC_FORMAT_BIN );
+
+            ClockMsg.msg = (uint8_t)SERIAL_MSG_DATE;
+
+            stateClock = STATE_GET_TIME_AND_DATE;
+            break;
+
+        case STATE_CHANGE_ALARM:
+
+            sAlarm.AlarmTime.Hours = ClockMsg.tm.tm_hour;
+            sAlarm.AlarmTime.Minutes = ClockMsg.tm.tm_min;
+            HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BIN );
+
+            stateClock = STATE_GET_ALARM;
+            break;
+    
+        default:
+          break;
         }
     }
 }

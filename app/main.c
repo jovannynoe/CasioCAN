@@ -18,6 +18,15 @@
 #include "app_serial.h"
 #include "app_clock.h"
 #include "app_display.h"
+#include "scheduler.h"
+
+/** 
+  * @defgroup Scheduler Concepts to initialize the structure Sche
+  @{ */
+#define TASKS_N 4  
+#define TICK_VAL 10u
+/**
+  @} */
 
 /** 
   * @defgroup WWDG Defines to configurate WWDG
@@ -52,12 +61,10 @@ GPIO_InitTypeDef GPIO_InitStruct;
 /**
  * @brief  Global variable because is used in two functions
  */
-static uint32_t tickstartHeartBeat;
-
-/**
- * @brief  Global variable because is used in two functions
- */
 static uint32_t tickstartPethTheDog;
+
+static Task_TypeDef tasks[TASKS_N];
+static Scheduler_HandleTypeDef Sche;
 
 /**
  * @brief   This function is the main where we run everything the functions.
@@ -73,20 +80,18 @@ static uint32_t tickstartPethTheDog;
 int main( void )
 {
     HAL_Init();
-    Heart_Init();
-    Serial_Init();
-    Clock_Init();
-    Display_Init();
-    //Dog_Init();
 
-    while(1){
-        
-        Serial_Task();
-        Clock_Task();
-        Display_Task();
-        Heart_Beat();
-        //Peth_The_Dog();
-    }
+    Sche.tick = TICK_VAL;
+    Sche.tasks = TASKS_N;
+    Sche.taskPtr = tasks;
+    HIL_SCHEDULER_Init( &Sche );
+
+    HIL_SCHEDULER_RegisterTask( &Sche, Serial_Init, Serial_Task, 10u );
+    HIL_SCHEDULER_RegisterTask( &Sche, Clock_Init, Clock_Task, 50u );
+    HIL_SCHEDULER_RegisterTask( &Sche, Display_Init, Display_Task, 100u );
+    HIL_SCHEDULER_RegisterTask( &Sche, Heart_Init, Heart_Beat, 300u );
+    
+    HIL_SCHEDULER_Start( &Sche );
 }
 
 /**
@@ -107,8 +112,6 @@ void Heart_Init( void )
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init( GPIOC, &GPIO_InitStruct );
-
-    tickstartHeartBeat = HAL_GetTick();
 }
 
 /**
@@ -123,10 +126,7 @@ void Heart_Init( void )
  */
 void Heart_Beat( void )
 {
-    if( (HAL_GetTick() - tickstartHeartBeat) >= TOGGLE_LED ){
-        tickstartHeartBeat = HAL_GetTick();
-        HAL_GPIO_TogglePin( GPIOC, GPIO_PIN_0 );
-    }
+    HAL_GPIO_TogglePin( GPIOC, GPIO_PIN_0 );
 }
 
 /**

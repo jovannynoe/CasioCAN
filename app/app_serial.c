@@ -503,7 +503,7 @@ void HAL_FDCAN_RxFifo0Callback( FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs
         HAL_FDCAN_GetRxMessage( hfdcan, FDCAN_RX_FIFO0, &CANRxHeader, RxData );
 
         if( RxData[0] == CAN_TP ){
-            (void)HIL_QUEUE_WriteISR( &SerialQueue, RxData, TIM16_FDCAN_IT0_IRQn );
+            (void)HIL_QUEUE_Write( &SerialQueue, RxData );
             flag = TRUE;
             stateSerial = STATE_RECEPTION;
         }
