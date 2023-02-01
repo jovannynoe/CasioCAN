@@ -19,7 +19,7 @@ typedef struct _task
 
     uint32_t elapsed;         /*the current elapsed time*/
 
-    uint8_t startTask;
+    uint8_t startTask;          /*Flag to start the task*/
 
     void (*initFunc)(void);   /*pointer to init task function*/
 
