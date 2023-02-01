@@ -18,6 +18,14 @@
 #include <stdlib.h>
 
 /** 
+  * @defgroup Bool We create boolean elements
+  @{ */
+#define TRUE 1u     /*!< Boolean true */
+#define FALSE 0u    /*!< Boolean false */
+/**
+  @} */
+
+/** 
   * @defgroup Months Months of the year
   @{ */
 #define JAN 1u  /*!< January month */
@@ -38,10 +46,10 @@
 /** 
   * @defgroup States States to we know what is the state without errors
   @{ */
-#define STATE_IDLE 0        /*!< Idle state */
-#define STATE_PRINT_TIME 1  /*!< State to print the time in LCD */
-#define STATE_PRINT_DATE 2  /*!< State to print the time in LCD */
-#define STATE_RECEPTION 3   /*!< State to read messages */ 
+#define STATE_IDLE 0u        /*!< Idle state */
+#define STATE_PRINT_TIME 1u  /*!< State to print the time in LCD */
+#define STATE_PRINT_DATE 2u  /*!< State to print the time in LCD */
+#define STATE_RECEPTION 3u   /*!< State to read messages */ 
 /**
   @} */
 
@@ -54,13 +62,14 @@
 
 static void monthNumberToMonthWord( void );
 static void weekDayNumberToWeekDayWord( void );
+extern char *	itoa (int, char *, int);
 
 static APP_MsgTypeDef DisplayMsg;
 
 /**
  * @brief  Variable for LCD Handle Structure definition
  */
-LCD_HandleTypeDef hlcd;
+static LCD_HandleTypeDef LCD_Structure;
 
 /**
  * @brief  Global variable because is used in two functions to manipulate the months in array
@@ -71,11 +80,6 @@ static char DisplayMsgtm_mon[4];
  * @brief  Global variable because is used in two functions to manipulate the week days in array
  */
 static char DisplayMsgtm_wday[3];
-
-/**
- * @brief  Global variable to wait a message per 50 ms
- */
-static uint32_t tickstartWaitMessage;
 
 /**
  * @brief   Display init function is to configurate the SPI peripheral to can use the LCD.
@@ -107,18 +111,16 @@ void Display_Init( void )
     SpiHandle.Init.TIMode               = SPI_TIMODE_DISABLED;
     HAL_SPI_Init( &SpiHandle );
 
-    hlcd.BklPin = GPIO_PIN_12;
-    hlcd.BklPort = GPIOC;
-    hlcd.CsPin = GPIO_PIN_15;
-    hlcd.CsPort = GPIOB;
-    hlcd.RsPin = GPIO_PIN_9;
-    hlcd.RsPort = GPIOC;
-    hlcd.RstPin = GPIO_PIN_8;
-    hlcd.RstPort = GPIOC;
-    hlcd.SpiHandler = &SpiHandle;
-    HEL_LCD_Init( &hlcd );
-
-    tickstartWaitMessage = HAL_GetTick();
+    LCD_Structure.BklPin = GPIO_PIN_12;
+    LCD_Structure.BklPort = GPIOC;
+    LCD_Structure.CsPin = GPIO_PIN_15;
+    LCD_Structure.CsPort = GPIOB;
+    LCD_Structure.RsPin = GPIO_PIN_9;
+    LCD_Structure.RsPort = GPIOC;
+    LCD_Structure.RstPin = GPIO_PIN_8;
+    LCD_Structure.RstPort = GPIOC;
+    LCD_Structure.SpiHandler = &SpiHandle;
+    HEL_LCD_Init( &LCD_Structure );
 }
 
 /**
@@ -145,80 +147,74 @@ void Display_Task( void )
 
     stateDisplay = STATE_RECEPTION;
 
-    if( (HAL_GetTick() - tickstartWaitMessage) >= 100 ){
-        tickstartWaitMessage = HAL_GetTick();
+    while( stateDisplay != STATE_IDLE ){
 
-        while( stateDisplay != STATE_IDLE ){
+        switch (stateDisplay)
+        {
+        case STATE_IDLE:
+            /*STATE EMPTY*/
+            break;
 
-            switch (stateDisplay)
-            {
-            case STATE_IDLE:
-                /*STATE EMPTY*/
-                break;
+        case STATE_RECEPTION:
+            if( HIL_QUEUE_IsEmpty( &DisplayQueue ) == FALSE ){
 
-            case STATE_RECEPTION:
-                if( HIL_QUEUE_IsEmpty( &DisplayQueue ) == 0 ){
+                (void)HIL_QUEUE_Read( &DisplayQueue, &DisplayMsg );
 
-                    HIL_QUEUE_Read( &DisplayQueue, &DisplayMsg );
-
-                    stateDisplay = STATE_PRINT_TIME;
-                }
-                else{
-                    stateDisplay = STATE_IDLE;
-                }
-                
-                break;
-
-            case STATE_PRINT_TIME:
-
-                if( DisplayMsg.tm.tm_sec == 0u ){
-                    HEL_LCD_Command( &hlcd, CLEAR );
-                }
-
-                (void)itoa( DisplayMsg.tm.tm_hour, DisplayMsgtm_hour, 10 );
-                (void)itoa( DisplayMsg.tm.tm_min, DisplayMsgtm_min, 10 );
-                (void)itoa( DisplayMsg.tm.tm_sec, DisplayMsgtm_sec, 10 );
-
-                HEL_LCD_SetCursor( &hlcd, 1, 3 );
-                HEL_LCD_String( &hlcd, DisplayMsgtm_hour ); 
-                HEL_LCD_SetCursor( &hlcd, 1, 5 );
-                HEL_LCD_Data( &hlcd, ':' );
-                HEL_LCD_SetCursor( &hlcd, 1, 6 );
-                HEL_LCD_String( &hlcd, DisplayMsgtm_min );
-                HEL_LCD_SetCursor( &hlcd, 1, 8 );
-                HEL_LCD_Data( &hlcd, ':' );
-                HEL_LCD_SetCursor( &hlcd, 1, 9 );
-                HEL_LCD_String( &hlcd, DisplayMsgtm_sec );
-
-                stateDisplay = STATE_PRINT_DATE;
-        
-                break;
-
-            case STATE_PRINT_DATE:
-                monthNumberToMonthWord();
-                weekDayNumberToWeekDayWord();
-
-                (void)itoa( DisplayMsg.tm.tm_mday, DisplayMsgtm_mday, 10 );
-                (void)itoa( DisplayMsg.tm.tm_year, DisplayMsgtm_year, 10 );
-
-                HEL_LCD_SetCursor( &hlcd, 0, 1 );
-                HEL_LCD_String( &hlcd, DisplayMsgtm_mon );
-                HEL_LCD_SetCursor( &hlcd, 0, 4 );
-                HEL_LCD_Data( &hlcd, ',' );
-                HEL_LCD_SetCursor( &hlcd, 0, 5 );
-                HEL_LCD_String( &hlcd, DisplayMsgtm_mday );
-                HEL_LCD_SetCursor( &hlcd, 0, 8 );
-                HEL_LCD_String( &hlcd, DisplayMsgtm_year );
-                HEL_LCD_SetCursor( &hlcd, 0, 13 );
-                HEL_LCD_String( &hlcd, DisplayMsgtm_wday );
-
-                stateDisplay = STATE_RECEPTION;
-
-                break;
-    
-            default:
-                break;
+                stateDisplay = STATE_PRINT_TIME;
             }
+            else{
+                stateDisplay = STATE_IDLE;
+            }
+                
+            break;
+
+        case STATE_PRINT_TIME:
+
+            if( DisplayMsg.tm.tm_sec == 0u ){
+                HEL_LCD_Command( &LCD_Structure, CLEAR );
+            }
+
+            (void)itoa( DisplayMsg.tm.tm_hour, DisplayMsgtm_hour, 10 );
+            (void)itoa( DisplayMsg.tm.tm_min, DisplayMsgtm_min, 10 );
+            (void)itoa( DisplayMsg.tm.tm_sec, DisplayMsgtm_sec, 10 );
+
+            HEL_LCD_SetCursor( &LCD_Structure, 1, 3 );
+            HEL_LCD_String( &LCD_Structure, DisplayMsgtm_hour ); 
+            HEL_LCD_SetCursor( &LCD_Structure, 1, 5 );
+            HEL_LCD_Data( &LCD_Structure, ':' );
+            HEL_LCD_SetCursor( &LCD_Structure, 1, 6 );
+            HEL_LCD_String( &LCD_Structure, DisplayMsgtm_min );
+            HEL_LCD_SetCursor( &LCD_Structure, 1, 8 );
+            HEL_LCD_Data( &LCD_Structure, ':' );
+            HEL_LCD_SetCursor( &LCD_Structure, 1, 9 );
+            HEL_LCD_String( &LCD_Structure, DisplayMsgtm_sec );
+
+            stateDisplay = STATE_PRINT_DATE;
+            break;
+
+        case STATE_PRINT_DATE:
+            monthNumberToMonthWord();
+            weekDayNumberToWeekDayWord();
+
+            (void)itoa( DisplayMsg.tm.tm_mday, DisplayMsgtm_mday, 10 );
+            (void)itoa( DisplayMsg.tm.tm_year, DisplayMsgtm_year, 10 );
+
+            HEL_LCD_SetCursor( &LCD_Structure, 0, 1 );
+            HEL_LCD_String( &LCD_Structure, DisplayMsgtm_mon );
+            HEL_LCD_SetCursor( &LCD_Structure, 0, 4 );
+            HEL_LCD_Data( &LCD_Structure, ',' );
+            HEL_LCD_SetCursor( &LCD_Structure, 0, 5 );
+            HEL_LCD_String( &LCD_Structure, DisplayMsgtm_mday );
+            HEL_LCD_SetCursor( &LCD_Structure, 0, 8 );
+            HEL_LCD_String( &LCD_Structure, DisplayMsgtm_year );
+            HEL_LCD_SetCursor( &LCD_Structure, 0, 13 );
+            HEL_LCD_String( &LCD_Structure, DisplayMsgtm_wday );
+
+            stateDisplay = STATE_RECEPTION;
+            break;
+    
+        default:
+            break;
         }
     }
 }
