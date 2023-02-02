@@ -10,9 +10,9 @@
 void HIL_SCHEDULER_Init( Scheduler_HandleTypeDef *hscheduler )
 {
     hscheduler->tasksCount = ZERO;
-    /*hscheduler->taskPtr->elapsed = ZERO;
+    hscheduler->taskPtr->elapsed = ZERO;
     hscheduler->taskPtr->period = ZERO;
-    hscheduler->taskPtr->startTask = ZERO;*/
+    hscheduler->taskPtr->startTask = ZERO;
 }
 
 uint8_t HIL_SCHEDULER_RegisterTask( Scheduler_HandleTypeDef *hscheduler, void (*InitPtr)(void), void (*TaskPtr)(void), uint32_t Period )
