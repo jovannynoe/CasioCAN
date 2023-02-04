@@ -17,26 +17,15 @@ void HIL_SCHEDULER_Init( Scheduler_HandleTypeDef *hscheduler )
 
 uint8_t HIL_SCHEDULER_RegisterTask( Scheduler_HandleTypeDef *hscheduler, void (*InitPtr)(void), void (*TaskPtr)(void), uint32_t Period )
 {
-    uint8_t taskID;
+    uint8_t taskID = ZERO;
 
-    if( (Period > hscheduler->tick) && (Period % hscheduler->tick == ZERO) && (InitPtr == NULL) ){
+    if( (Period > ZERO) && (Period % hscheduler->tick == ZERO) && (TaskPtr != NULL) ){
         hscheduler->taskPtr[hscheduler->tasksCount].initFunc = InitPtr;
         hscheduler->taskPtr[hscheduler->tasksCount].period = Period;
         hscheduler->taskPtr[hscheduler->tasksCount].taskFunc = TaskPtr;
         hscheduler->tasksCount++;
 
         taskID = ONE;
-    }
-    else if( (Period > hscheduler->tick) && (Period % hscheduler->tick == ZERO) ){
-        hscheduler->taskPtr[hscheduler->tasksCount].initFunc = InitPtr;
-        hscheduler->taskPtr[hscheduler->tasksCount].period = Period;
-        hscheduler->taskPtr[hscheduler->tasksCount].taskFunc = TaskPtr;
-        hscheduler->tasksCount++;
-
-        taskID = ONE;
-    } 
-    else{
-        taskID = ZERO;
     }
 
     return taskID;
@@ -90,10 +79,9 @@ uint8_t HIL_SCHEDULER_PeriodTask( Scheduler_HandleTypeDef *hscheduler, uint32_t 
 void HIL_SCHEDULER_Start( Scheduler_HandleTypeDef *hscheduler )
 {
     static uint64_t tickstart;
-    uint32_t i;
 
     /*We initialize the Init functions.*/
-    for( i = ZERO; (i < hscheduler->tasks); i++ ){
+    for( uint32_t i = ZERO; (i < hscheduler->tasks); i++ ){
         if( hscheduler->taskPtr[i].initFunc != NULL ){
             hscheduler->taskPtr[i].initFunc();
         }
@@ -102,11 +90,11 @@ void HIL_SCHEDULER_Start( Scheduler_HandleTypeDef *hscheduler )
     tickstart = HAL_GetTick();
     
     while(1){
-        /*We run all the tasks*/
         if( (HAL_GetTick() - tickstart) >= (hscheduler->tick) ){
             tickstart = HAL_GetTick();
 
-            for( i = ZERO; (i < hscheduler->tasks); i++ ){
+            /*We run all the tasks*/
+            for( uint32_t i = ZERO; (i < hscheduler->tasks); i++ ){
                 if( (hscheduler->taskPtr[i].elapsed) >= (hscheduler->taskPtr[i].period) ){
                     if( hscheduler->taskPtr[i].taskFunc != NULL ){
                         hscheduler->taskPtr[i].taskFunc();
@@ -119,6 +107,94 @@ void HIL_SCHEDULER_Start( Scheduler_HandleTypeDef *hscheduler )
                 }
                 hscheduler->taskPtr[i].elapsed += hscheduler->tick;
             }
+
+            /*We run all the timers*/
+            for( uint32_t i = ZERO; (i < hscheduler->timers); i++ ){
+                if( (hscheduler->timerPtr) != NULL ){
+                    if( (hscheduler->timerPtr[i].StartFlag) == ONE ){
+                        hscheduler->timerPtr[i].callbackPtr();
+                        hscheduler->timerPtr[i].StartFlag = ZERO;
+                    }
+                }
+            }
         }
     }  
+}
+
+uint8_t HIL_SCHEDULER_RegisterTimer( Scheduler_HandleTypeDef *hscheduler, uint32_t Timeout, void (*CallbackPtr)(void) )
+{
+    uint8_t timerID;
+
+    if( (Timeout > ZERO) && (Timeout % hscheduler->tick == ZERO) ){
+        hscheduler->timerPtr[hscheduler->tasksCount].callbackPtr = CallbackPtr;
+        hscheduler->timerPtr[hscheduler->tasksCount].Timeout = Timeout;
+        hscheduler->tasksCount++;
+
+        timerID = ONE;
+    }
+    else{
+        timerID = ZERO;
+    }
+
+    return timerID;
+}
+
+uint32_t HIL_SCHEDULER_GetTimer( Scheduler_HandleTypeDef *hscheduler, uint32_t Timer )
+{
+    uint32_t currentTimer;
+
+    if( (Timer > ZERO) && (Timer <= hscheduler->tasksCount) ){
+        currentTimer = (hscheduler->timerPtr[Timer - ONE].Timeout) - (hscheduler->tick); 
+    }
+    else{
+        currentTimer = ZERO;
+    }
+
+    return currentTimer;
+}
+
+uint8_t HIL_SCHEDULER_ReloadTimer( Scheduler_HandleTypeDef *hscheduler, uint32_t Timer, uint32_t Timeout )
+{
+    uint8_t itIsRegistered;
+
+    if( ( (Timeout % hscheduler->tick) == ZERO) && (Timer > ZERO) && (Timer <= hscheduler->tasksCount) ){
+        hscheduler->timerPtr[Timer - ONE].Timeout = Timeout;
+        itIsRegistered = TRUE;
+    }
+    else{
+        itIsRegistered = FALSE;
+    }
+
+    return itIsRegistered;
+}
+
+uint8_t HIL_SCHEDULER_StartTimer( Scheduler_HandleTypeDef *hscheduler, uint32_t Timer )
+{
+    uint8_t timerStarted;
+
+    if( (Timer > ZERO) && (Timer < hscheduler->tasksCount) ){
+        hscheduler->timerPtr[Timer - ONE].Count = hscheduler->timerPtr[Timer].Timeout;
+        hscheduler->timerPtr[Timer - ONE].StartFlag = ONE;
+        timerStarted = ONE;
+    }
+    else{
+        timerStarted = ZERO;
+    }
+
+    return timerStarted;
+}
+
+uint8_t HIL_SCHEDULER_StopTimer( Scheduler_HandleTypeDef *hscheduler, uint32_t Timer )
+{
+    uint8_t timerStarted;
+
+    if( (Timer > ZERO) && (Timer < hscheduler->tasksCount) ){
+        hscheduler->timerPtr[Timer - ONE].StartFlag = ZERO;
+        timerStarted = ONE;
+    }
+    else{
+        timerStarted = ZERO;
+    }
+
+    return timerStarted;
 }

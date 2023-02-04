@@ -86,10 +86,10 @@ int main( void )
     Sche.taskPtr = tasks;
     HIL_SCHEDULER_Init( &Sche );
 
-    HIL_SCHEDULER_RegisterTask( &Sche, Serial_Init, Serial_Task, 10u );
-    HIL_SCHEDULER_RegisterTask( &Sche, Clock_Init, Clock_Task, 50u );
-    HIL_SCHEDULER_RegisterTask( &Sche, Display_Init, Display_Task, 100u );
-    HIL_SCHEDULER_RegisterTask( &Sche, Heart_Init, Heart_Beat, 300u );
+    HIL_SCHEDULER_RegisterTask( &Sche, &Clock_Init, Clock_Task, 50u );
+    HIL_SCHEDULER_RegisterTask( &Sche, &Display_Init, Display_Task, 100u );
+    HIL_SCHEDULER_RegisterTask( &Sche, &Heart_Init, Heart_Beat, 300u );
+    HIL_SCHEDULER_RegisterTask( &Sche, &Serial_Init, Serial_Task, 10u );
     
     HIL_SCHEDULER_Start( &Sche );
 }
