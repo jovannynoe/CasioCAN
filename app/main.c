@@ -23,7 +23,7 @@
 /** 
   * @defgroup Scheduler Concepts to initialize the structure Sche
   @{ */
-#define TASKS_N 4  
+#define TASKS_N 4u 
 #define TICK_VAL 10u
 /**
   @} */
@@ -48,6 +48,8 @@ static void Heart_Beat( void );
 static void Dog_Init( void );
 static void Peth_The_Dog( void );
 
+static void Toggle_Pin( void );
+
 /**
  * @brief  Variable for WWDG Handle Structure definition
  */
@@ -64,6 +66,7 @@ GPIO_InitTypeDef GPIO_InitStruct;
 static uint32_t tickstartPethTheDog;
 
 static Task_TypeDef tasks[TASKS_N];
+static Timer_TypeDef timers[1u];
 static Scheduler_HandleTypeDef Sche;
 
 /**
@@ -84,12 +87,18 @@ int main( void )
     Sche.tick = TICK_VAL;
     Sche.tasks = TASKS_N;
     Sche.taskPtr = tasks;
+    Sche.timers = 1u;
+    Sche.timerPtr = timers;
     HIL_SCHEDULER_Init( &Sche );
 
-    HIL_SCHEDULER_RegisterTask( &Sche, &Clock_Init, Clock_Task, 50u );
-    HIL_SCHEDULER_RegisterTask( &Sche, &Display_Init, Display_Task, 100u );
-    HIL_SCHEDULER_RegisterTask( &Sche, &Heart_Init, Heart_Beat, 300u );
-    HIL_SCHEDULER_RegisterTask( &Sche, &Serial_Init, Serial_Task, 10u );
+    HIL_SCHEDULER_RegisterTask( &Sche, Clock_Init, Clock_Task, 50u );
+    HIL_SCHEDULER_RegisterTask( &Sche, Display_Init, Display_Task, 100u );
+    HIL_SCHEDULER_RegisterTask( &Sche, Heart_Init, Heart_Beat, 300u );
+    HIL_SCHEDULER_RegisterTask( &Sche, Serial_Init, Serial_Task, 10u );
+
+    HIL_SCHEDULER_RegisterTimer( &Sche, 5000u, Toggle_Pin );
+
+    HIL_SCHEDULER_StartTimer( &Sche, 1u );
     
     HIL_SCHEDULER_Start( &Sche );
 }
@@ -178,6 +187,11 @@ void Peth_The_Dog( void )
         tickstartPethTheDog = HAL_GetTick();
         HAL_WWDG_Refresh( &hwwdg );
     }
+}
+
+void Toggle_Pin( void )
+{
+    HAL_GPIO_TogglePin( GPIOC, GPIO_PIN_5 );
 }
 
 

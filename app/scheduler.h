@@ -15,18 +15,6 @@ typedef struct _task
 
 } Task_TypeDef;
 
-typedef struct _scheduler
-{
-    uint32_t tasks;         /*number of task to handle*/
-
-    uint32_t tick;          /*the time base in ms*/
-
-    uint32_t tasksCount;    /*internal task counter*/
-
-    Task_TypeDef *taskPtr;  /*Pointer to buffer for the TCB tasks*/
-
-} Scheduler_HandleTypeDef;
-
 typedef struct _Timer_TypeDef
 {
     uint32_t Timeout;       /*!< timer timeout to decrement and reload when the timer is re-started */
@@ -50,6 +38,8 @@ typedef struct _scheduler
     Task_TypeDef *taskPtr;  /*Pointer to buffer for the TCB tasks*/
     
     uint32_t timers;        /*number of software timer to use*/
+
+    uint32_t timersCount;   /*internal timers counter*/
     
     Timer_TypeDef *timerPtr /*Pointer to buffer timer array*/
 
