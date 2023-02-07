@@ -18,7 +18,6 @@
 #include "app_serial.h"
 #include "app_clock.h"
 #include "app_display.h"
-#include "scheduler.h"
 
 /** 
   * @defgroup Scheduler Concepts to initialize the structure Sche
@@ -67,7 +66,7 @@ static uint32_t tickstartPethTheDog;
 
 static Task_TypeDef tasks[TASKS_N];
 static Timer_TypeDef timers[1u];
-static Scheduler_HandleTypeDef Sche;
+Scheduler_HandleTypeDef Sche;
 
 /**
  * @brief   This function is the main where we run everything the functions.
@@ -95,10 +94,6 @@ int main( void )
     HIL_SCHEDULER_RegisterTask( &Sche, Display_Init, Display_Task, 100u );
     HIL_SCHEDULER_RegisterTask( &Sche, Heart_Init, Heart_Beat, 300u );
     HIL_SCHEDULER_RegisterTask( &Sche, Serial_Init, Serial_Task, 10u );
-
-    HIL_SCHEDULER_RegisterTimer( &Sche, 5000u, Toggle_Pin );
-
-    HIL_SCHEDULER_StartTimer( &Sche, 1u );
     
     HIL_SCHEDULER_Start( &Sche );
 }
