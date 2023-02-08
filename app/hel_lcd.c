@@ -123,7 +123,6 @@ void HEL_LCD_Command( LCD_HandleTypeDef *hlcd, uint8_t cmd )
     HAL_GPIO_WritePin( hlcd->CsPort, hlcd->CsPin, RESET );  /*CS = 0*/
     HAL_SPI_Transmit( hlcd->SpiHandler, &cmd, sizeof(cmd), 5000 );
     HAL_GPIO_WritePin( hlcd->CsPort, hlcd->CsPin, SET );    /*CS = 1*/
-    HAL_Delay(1);
 }
 
 /**
@@ -144,7 +143,6 @@ void HEL_LCD_Data( LCD_HandleTypeDef *hlcd, uint8_t data )
     HAL_GPIO_WritePin( hlcd->CsPort, hlcd->CsPin, RESET );  /*CS = 0*/
     HAL_SPI_Transmit( hlcd->SpiHandler, &data, sizeof(data), 5000 );
     HAL_GPIO_WritePin( hlcd->CsPort, hlcd->CsPin, SET );    /*CS = 1*/
-    HAL_Delay(1);
 }
 
 /**

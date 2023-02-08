@@ -46,10 +46,7 @@
 /** 
   * @defgroup States States to we know what is the state without errors
   @{ */
-#define STATE_IDLE 0u        /*!< Idle state */
-#define STATE_PRINT_TIME 1u  /*!< State to print the time in LCD */
-#define STATE_PRINT_DATE 2u  /*!< State to print the time in LCD */
-#define STATE_RECEPTION 3u   /*!< State to read messages */ 
+#define STATE_PRINT_RTC 0u  /*!< State to print the time in LCD */
 /**
   @} */
 
@@ -60,11 +57,10 @@
 /**
   @} */
 
-static void monthNumberToMonthWord( void );
-static void weekDayNumberToWeekDayWord( void );
+static void Display_StMachine( APP_MsgTypeDef *DisplayMsg );
+static void monthNumberToMonthWord( APP_MsgTypeDef *DisplayMsg );
+static void weekDayNumberToWeekDayWord( APP_MsgTypeDef *DisplayMsg );
 extern char *	itoa (int, char *, int);
-
-static APP_MsgTypeDef DisplayMsg;
 
 /**
  * @brief  Variable for LCD Handle Structure definition
@@ -138,84 +134,72 @@ void Display_Init( void )
  */
 void Display_Task( void )
 {
-    uint8_t stateDisplay;
+    APP_MsgTypeDef DisplayMsg;
+
+    while( HIL_QUEUE_IsEmpty( &DisplayQueue ) == FALSE ){
+
+        (void)HIL_QUEUE_Read( &DisplayQueue, &DisplayMsg );
+
+        Display_StMachine( &DisplayMsg );
+    }       
+}
+
+void Display_StMachine( APP_MsgTypeDef *DisplayMsg )
+{
     char DisplayMsgtm_hour[3];
     char DisplayMsgtm_min[3];
     char DisplayMsgtm_sec[3]; 
     char DisplayMsgtm_mday[3];
     char DisplayMsgtm_year[5];
 
-    stateDisplay = STATE_RECEPTION;
+    switch (DisplayMsg->msg)
+    {
 
-    while( stateDisplay != STATE_IDLE ){
+    case STATE_PRINT_RTC:
 
-        switch (stateDisplay)
-        {
-        case STATE_IDLE:
-            /*STATE EMPTY*/
-            break;
-
-        case STATE_RECEPTION:
-            if( HIL_QUEUE_IsEmpty( &DisplayQueue ) == FALSE ){
-
-                (void)HIL_QUEUE_Read( &DisplayQueue, &DisplayMsg );
-
-                stateDisplay = STATE_PRINT_TIME;
-            }
-            else{
-                stateDisplay = STATE_IDLE;
-            }
-                
-            break;
-
-        case STATE_PRINT_TIME:
-
-            if( DisplayMsg.tm.tm_sec == 0u ){
-                HEL_LCD_Command( &LCD_Structure, CLEAR );
-            }
-
-            (void)itoa( DisplayMsg.tm.tm_hour, DisplayMsgtm_hour, 10 );
-            (void)itoa( DisplayMsg.tm.tm_min, DisplayMsgtm_min, 10 );
-            (void)itoa( DisplayMsg.tm.tm_sec, DisplayMsgtm_sec, 10 );
-
-            HEL_LCD_SetCursor( &LCD_Structure, 1, 3 );
-            HEL_LCD_String( &LCD_Structure, DisplayMsgtm_hour ); 
-            HEL_LCD_SetCursor( &LCD_Structure, 1, 5 );
-            HEL_LCD_Data( &LCD_Structure, ':' );
-            HEL_LCD_SetCursor( &LCD_Structure, 1, 6 );
-            HEL_LCD_String( &LCD_Structure, DisplayMsgtm_min );
-            HEL_LCD_SetCursor( &LCD_Structure, 1, 8 );
-            HEL_LCD_Data( &LCD_Structure, ':' );
-            HEL_LCD_SetCursor( &LCD_Structure, 1, 9 );
-            HEL_LCD_String( &LCD_Structure, DisplayMsgtm_sec );
-
-            stateDisplay = STATE_PRINT_DATE;
-            break;
-
-        case STATE_PRINT_DATE:
-            monthNumberToMonthWord();
-            weekDayNumberToWeekDayWord();
-
-            (void)itoa( DisplayMsg.tm.tm_mday, DisplayMsgtm_mday, 10 );
-            (void)itoa( DisplayMsg.tm.tm_year, DisplayMsgtm_year, 10 );
-
-            HEL_LCD_SetCursor( &LCD_Structure, 0, 1 );
-            HEL_LCD_String( &LCD_Structure, DisplayMsgtm_mon );
-            HEL_LCD_SetCursor( &LCD_Structure, 0, 4 );
-            HEL_LCD_Data( &LCD_Structure, ',' );
-            HEL_LCD_SetCursor( &LCD_Structure, 0, 5 );
-            HEL_LCD_String( &LCD_Structure, DisplayMsgtm_mday );
-            HEL_LCD_SetCursor( &LCD_Structure, 0, 8 );
-            HEL_LCD_String( &LCD_Structure, DisplayMsgtm_year );
-            HEL_LCD_SetCursor( &LCD_Structure, 0, 13 );
-            HEL_LCD_String( &LCD_Structure, DisplayMsgtm_wday );
-
-            stateDisplay = STATE_RECEPTION;
-            break;
-    
-        default:
-            break;
+        if( DisplayMsg->tm.tm_sec == 0u ){
+            HEL_LCD_Command( &LCD_Structure, CLEAR );
         }
+
+        (void)itoa( DisplayMsg->tm.tm_hour, DisplayMsgtm_hour, 10 );
+        (void)itoa( DisplayMsg->tm.tm_min, DisplayMsgtm_min, 10 );
+        (void)itoa( DisplayMsg->tm.tm_sec, DisplayMsgtm_sec, 10 );
+
+        HEL_LCD_SetCursor( &LCD_Structure, 1, 3 );
+        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_hour ); 
+        HEL_LCD_SetCursor( &LCD_Structure, 1, 5 );
+        HEL_LCD_Data( &LCD_Structure, ':' );
+        HEL_LCD_SetCursor( &LCD_Structure, 1, 6 );
+        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_min );
+        HEL_LCD_SetCursor( &LCD_Structure, 1, 8 );
+        HEL_LCD_Data( &LCD_Structure, ':' );
+        HEL_LCD_SetCursor( &LCD_Structure, 1, 9 );
+        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_sec );
+
+        if( DisplayMsg->tm.tm_sec == 0u ){
+            HEL_LCD_Command( &LCD_Structure, CLEAR );
+        }
+
+        monthNumberToMonthWord( DisplayMsg );
+        weekDayNumberToWeekDayWord( DisplayMsg );
+
+        (void)itoa( DisplayMsg->tm.tm_mday, DisplayMsgtm_mday, 10 );
+        (void)itoa( DisplayMsg->tm.tm_year, DisplayMsgtm_year, 10 );
+
+        HEL_LCD_SetCursor( &LCD_Structure, 0, 1 );
+        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_mon );
+        HEL_LCD_SetCursor( &LCD_Structure, 0, 4 );
+        HEL_LCD_Data( &LCD_Structure, ',' );
+        HEL_LCD_SetCursor( &LCD_Structure, 0, 5 );
+        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_mday );
+        HEL_LCD_SetCursor( &LCD_Structure, 0, 8 );
+        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_year );
+        HEL_LCD_SetCursor( &LCD_Structure, 0, 13 );
+        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_wday );
+        break;
+    
+    default:
+        break;
     }
 }
 
@@ -230,11 +214,11 @@ void Display_Task( void )
  * @retval  None
  *
  */
-void monthNumberToMonthWord( void ){
+void monthNumberToMonthWord( APP_MsgTypeDef *DisplayMsg ){
     static uint8_t i;
     const uint8_t months[47] = "JAN FEB MAR APR MAY JUN JUL AUG SEP OCT NOV DEC";
 
-    switch (DisplayMsg.tm.tm_mon)
+    switch (DisplayMsg->tm.tm_mon)
     {
     case JAN:
         for( i = 0u; i < 3u; i++ ){
@@ -324,11 +308,11 @@ void monthNumberToMonthWord( void ){
  * @retval  None
  *
  */
-void weekDayNumberToWeekDayWord( void ){
+void weekDayNumberToWeekDayWord( APP_MsgTypeDef *DisplayMsg ){
     static uint8_t i;
     const uint8_t weekDays[21] = "Mo Tu We Th Fr Sa Su";
 
-    switch (DisplayMsg.tm.tm_wday)
+    switch (DisplayMsg->tm.tm_wday)
     {
     case RTC_WEEKDAY_MONDAY:
         for( i = 0u; i < 2u; i++ ){
