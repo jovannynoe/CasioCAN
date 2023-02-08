@@ -157,6 +157,8 @@ void Clock_Init( void )
  */
 void Clock_Task( void ){
     APP_MsgTypeDef ClockMsg;
+
+    Clock_StMachine( &ClockMsg );
     
     while( HIL_QUEUE_IsEmpty( &ClockQueue ) == 0u ){
 
@@ -236,4 +238,6 @@ void Clock_OneSec_Callback( void )
 
     tClockMsg.msg = STATE_GET_TIME_AND_DATE;
     HIL_QUEUE_Write( &ClockQueue, &tClockMsg );
+
+    HIL_SCHEDULER_StartTimer( &Sche, 1u );
 }

@@ -101,11 +101,11 @@ void HIL_SCHEDULER_Start( Scheduler_HandleTypeDef *hscheduler )
             for( uint32_t j = ZERO; (j < hscheduler->timers); j++ ){
                 if( (hscheduler->timerPtr) != NULL ){
                     if( (hscheduler->timerPtr[j].Count == ZERO) && ( (hscheduler->timerPtr[j].StartFlag) == ONE) ){
-                        hscheduler->timerPtr[j].callbackPtr();
                         hscheduler->timerPtr[j].StartFlag = ZERO;
+                        hscheduler->timerPtr[j].callbackPtr();
                     }
                     else if( (hscheduler->timerPtr[j].StartFlag) == ONE ){
-                        hscheduler->timerPtr[j].Count--;
+                        hscheduler->timerPtr[j].Count-=10;
                     }
                     else{
                     }    
@@ -138,7 +138,7 @@ uint8_t HIL_SCHEDULER_RegisterTimer( Scheduler_HandleTypeDef *hscheduler, uint32
 
     if( (Timeout > ZERO) && (Timeout % hscheduler->tick == ZERO) ){
         hscheduler->timerPtr[hscheduler->timersCount].callbackPtr = CallbackPtr;
-        hscheduler->timerPtr[hscheduler->timersCount].Timeout = (Timeout / 10u);
+        hscheduler->timerPtr[hscheduler->timersCount].Timeout = Timeout;
         hscheduler->timersCount++;
 
         timerID = ONE;
