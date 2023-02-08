@@ -48,8 +48,6 @@
 #define STATE_TIME 1u       /*!< State to validate the parameters of time */
 #define STATE_DATE 2u       /*!< State to validate the parameters of date */
 #define STATE_ALARM 3u      /*!< State to validate the parameters of alarm */
-#define STATE_OK 4u         /*!< State to save the values of the message in structure */
-#define STATE_ERROR 5u      /*!< State to send a error message to CANdo */
 /**
   @} */
 
@@ -127,12 +125,9 @@ FDCAN_TxHeaderTypeDef CANTxHeader;
  */
 FDCAN_FilterTypeDef CANFilter;
 
-/**
- * @brief  Global variable to we use like a flag
- */
-static uint8_t flag = 0u;
-
-static void Serial_Stmachine( uint8_t RxData[8], APP_MsgTypeDef *SerialMsg );
+static void Serial_Stmachine( uint8_t *RxData, APP_MsgTypeDef *SerialMsg );
+static void errorMsg( void );
+static void validationOK( APP_MsgTypeDef *MsgValidation );
 
 /**
  * @brief   Serial init function is to configurate the CAN protocol.
@@ -219,21 +214,15 @@ void Serial_Task( void )
 
     while( HIL_QUEUE_IsEmptyISR( &SerialQueue, TIM16_FDCAN_IT0_IRQn ) == FALSE ){
 
-        (void)HIL_QUEUE_ReadISR( &SerialQueue, RxData, TIM16_FDCAN_IT0_IRQn );
+        (void)HIL_QUEUE_ReadISR( &SerialQueue, &RxData, TIM16_FDCAN_IT0_IRQn );
 
         Serial_Stmachine( RxData, &SerialMsg );
     }
 }
 
-void Serial_Stmachine( uint8_t RxData[8], APP_MsgTypeDef *SerialMsgSt )
+void Serial_Stmachine( uint8_t *RxData, APP_MsgTypeDef *SerialMsgSt )
 {
-    static uint8_t stateTime = STATE_HOURS;
-    static uint8_t stateDate = STATE_MONTH;
-    static uint8_t stateAlarm = STATE_HOURS;
-    static uint8_t stateOk;
     static uint16_t year;
-    static uint8_t TxData[8];
-    uint8_t i;
 
     (void)HIL_QUEUE_ReadISR( &SerialQueue, RxData, TIM16_FDCAN_IT0_IRQn );
 
@@ -250,38 +239,25 @@ void Serial_Stmachine( uint8_t RxData[8], APP_MsgTypeDef *SerialMsgSt )
         RxData[3] = BCDFormatToDecimalFormat(RxData[3]);
         RxData[4] = BCDFormatToDecimalFormat(RxData[4]);
 
-        switch (stateTime)
-        {
-        case STATE_HOURS:
-            if( RxData[2] <= 23u ){
-                stateTime = STATE_MINUTES;
-            }
-            else{
-                SerialMsgSt->msg = STATE_ERROR;   
-            }
-            break;
-
-        case STATE_MINUTES:
+        if( RxData[2] <= 23u ){
             if( RxData[3] <= 59u ){
-                stateTime = STATE_SECONDS;
+                if( RxData[4] <= 59u ){
+                    SerialMsgSt->tm.tm_hour = RxData[2];
+                    SerialMsgSt->tm.tm_min = RxData[3];
+                    SerialMsgSt->tm.tm_sec = RxData[4];
+                    SerialMsgSt->msg = (uint8_t)SERIAL_MSG_TIME;
+                    validationOK( SerialMsgSt );
+                }
+                else{
+                    errorMsg();
+                }
             }
             else{
-                SerialMsgSt->msg = STATE_ERROR;
+                errorMsg();
             }
-            break;
-        
-        case STATE_SECONDS:
-            if( RxData[4] <= 59u ){
-                stateOk = STATE_TIME;
-                SerialMsgSt->msg = STATE_OK;
-            }
-            else{
-                SerialMsgSt->msg = STATE_ERROR;
-            }
-            break;
-        
-        default:
-            break;
+        }
+        else{
+            errorMsg();
         }
         break;
 
@@ -291,76 +267,74 @@ void Serial_Stmachine( uint8_t RxData[8], APP_MsgTypeDef *SerialMsgSt )
         RxData[3] = BCDFormatToDecimalFormat(RxData[3]);
         RxData[4] = BCDFormatToDecimalFormat(RxData[4]);
         RxData[5] = BCDFormatToDecimalFormat(RxData[5]);
-
-        switch (stateDate)
-        {
-        case STATE_DAY:
-            if( (RxData[3] == JAN) || (RxData[3] == MAR) || (RxData[3] == MAY) || (RxData[3] == JUL) || (RxData[3] == AUG) || (RxData[3] == OCT) || (RxData[3] == DEC) ){
-                if( (RxData[2] <= 31u) && (RxData[2] > 0u) ){
-                    stateOk = STATE_DATE;
-                    SerialMsgSt->msg = STATE_OK;
-                }  
-                else{
-                    SerialMsgSt->msg = STATE_ERROR;
-                }
-            }
-            else if( (RxData[3] == APR) || (RxData[3] == JUN) || (RxData[3] == SEP) || (RxData[3] == NOV) ){
-                if( (RxData[2] <= 30u) && (RxData[2] > 0u) ){
-                    stateOk = STATE_DATE;
-                    SerialMsgSt->msg = STATE_OK;
-                }
-                else{
-                    SerialMsgSt->msg = STATE_ERROR;
-                }
-            }
-            else if( RxData[3] == FEB ){
-                if( (year % 4u) == 0u ){
-                    if( (RxData[2] <= 29u) && (RxData[2] > 0u) ){
-                        stateOk = STATE_DATE;
-                        SerialMsgSt->msg = STATE_OK;
-                    } 
-                    else{
-                        SerialMsgSt->msg = STATE_ERROR;
-                    }
-                }
-                else if( (year % 4u) != 0u ){
-                    if( (RxData[2] <= 28u) && (RxData[2] > 0u) ){
-                        stateOk = STATE_DATE;
-                        SerialMsgSt->msg = STATE_OK;
-                    }
-                    else{
-                        SerialMsgSt->msg = STATE_ERROR;
-                    }
-                }
-                else{
-                }
-            }
-            else{
-            }
-            break;
-        
-        case STATE_MONTH:
-            if( (RxData[3] <= 12u) && (RxData[3] > 0u) ){
-                stateDate = STATE_YEAR;
-            }
-            else{
-                SerialMsgSt->msg = STATE_ERROR;
-            }
-            break;
-
-        case STATE_YEAR:
+            
+        if( (RxData[3] <= 12u) && (RxData[3] > 0u) ){
             year = (RxData[4] * 100u) + RxData[5];    
 
             if( (year >= 1900u) && (year <= 2100u) ){
-                stateDate = STATE_DAY;
+                if( (RxData[3] == JAN) || (RxData[3] == MAR) || (RxData[3] == MAY) || (RxData[3] == JUL) || (RxData[3] == AUG) || (RxData[3] == OCT) || (RxData[3] == DEC) ){
+                    if( (RxData[2] <= 31u) && (RxData[2] > 0u) ){
+                        SerialMsgSt->tm.tm_mday = RxData[2];
+                        SerialMsgSt->tm.tm_mon = RxData[3];
+                        SerialMsgSt->tm.tm_year = year;
+                        SerialMsgSt->msg = (uint8_t)SERIAL_MSG_DATE;
+                        validationOK( SerialMsgSt );
+                    }  
+                    else{
+                        errorMsg();
+                    }
+                }
+                else if( (RxData[3] == APR) || (RxData[3] == JUN) || (RxData[3] == SEP) || (RxData[3] == NOV) ){
+                    if( (RxData[2] <= 30u) && (RxData[2] > 0u) ){
+                        SerialMsgSt->tm.tm_mday = RxData[2];
+                        SerialMsgSt->tm.tm_mon = RxData[3];
+                        SerialMsgSt->tm.tm_year = year;
+                        SerialMsgSt->msg = (uint8_t)SERIAL_MSG_DATE;
+                        validationOK( SerialMsgSt );
+                    }
+                    else{
+                        errorMsg();
+                    }
+                }
+                else if( RxData[3] == FEB ){
+                    if( (year % 4u) == 0u ){
+                        if( (RxData[2] <= 29u) && (RxData[2] > 0u) ){
+                            SerialMsgSt->tm.tm_mday = RxData[2];
+                            SerialMsgSt->tm.tm_mon = RxData[3];
+                            SerialMsgSt->tm.tm_year = year;
+                            SerialMsgSt->msg = (uint8_t)SERIAL_MSG_DATE;
+                            validationOK( SerialMsgSt );
+                        } 
+                        else{
+                            errorMsg();
+                        }
+                    }
+                    else if( (year % 4u) != 0u ){
+                        if( (RxData[2] <= 28u) && (RxData[2] > 0u) ){
+                            SerialMsgSt->tm.tm_mday = RxData[2];
+                            SerialMsgSt->tm.tm_mon = RxData[3];
+                            SerialMsgSt->tm.tm_year = year;
+                            SerialMsgSt->msg = (uint8_t)SERIAL_MSG_DATE;
+                            validationOK( SerialMsgSt );
+                        }
+                        else{
+                            errorMsg();
+                        }
+                    }
+                    else{
+                        errorMsg();
+                    }
+                }   
+                else{
+                    errorMsg();
+                }
             }
             else{
-                SerialMsgSt->msg = STATE_ERROR;
+                errorMsg();
             }
-            break;
-        
-        default:
-            break;
+        }
+        else{
+            errorMsg();
         }
         break;
 
@@ -369,82 +343,23 @@ void Serial_Stmachine( uint8_t RxData[8], APP_MsgTypeDef *SerialMsgSt )
         RxData[2] = BCDFormatToDecimalFormat(RxData[2]);
         RxData[3] = BCDFormatToDecimalFormat(RxData[3]);
 
-        switch (stateAlarm)
-        {
-        case STATE_HOURS:
-            if( RxData[2] <= 23u ){
-                stateAlarm = STATE_MINUTES;
-            }
-            else{
-                SerialMsgSt->msg = STATE_ERROR;
-            }
-            break;
-    
-        case STATE_MINUTES:
+        if( RxData[2] <= 23u ){
             if( RxData[3] <= 59u ){
-                stateOk = STATE_ALARM;
-                SerialMsgSt->msg = STATE_OK;
+                SerialMsgSt->tm.tm_hour = RxData[2];
+                SerialMsgSt->tm.tm_min = RxData[3];
+                SerialMsgSt->msg = (uint8_t)SERIAL_MSG_ALARM;
+                validationOK( SerialMsgSt );
             }
             else{
-                SerialMsgSt->msg = STATE_ERROR;
+                errorMsg();
             }
-            break;
-        
-        default:
-            break;
         }
-        break;
-
-    case STATE_OK:
-        TxData[0] = RxData[0];
-
-        for( i = 1u; i < 8u; i++ ){
-            TxData[i] = OK_TRANSMIT;
+        else{
+            errorMsg();
         }
-
-        HAL_FDCAN_AddMessageToTxFifoQ( &CANHandler, &CANTxHeader, TxData );
-
-        switch (stateOk)
-        {
-        case STATE_TIME:
-            SerialMsgSt->tm.tm_hour = RxData[2];
-            SerialMsgSt->tm.tm_min = RxData[3];
-            SerialMsgSt->tm.tm_sec = RxData[4];
-            SerialMsgSt->msg = (uint8_t)SERIAL_MSG_TIME;
-            (void)HIL_QUEUE_WriteISR( &ClockQueue, SerialMsgSt, TIM16_FDCAN_IT0_IRQn );
-            break;
-        
-        case STATE_DATE:
-            SerialMsgSt->tm.tm_mday = RxData[2];
-            SerialMsgSt->tm.tm_mon = RxData[3];
-            SerialMsgSt->tm.tm_year = year;
-            SerialMsgSt->msg = (uint8_t)SERIAL_MSG_DATE;
-            (void)HIL_QUEUE_WriteISR( &ClockQueue, SerialMsgSt, TIM16_FDCAN_IT0_IRQn );
-            break;
-
-        case STATE_ALARM:
-            SerialMsgSt->tm.tm_hour = RxData[2];
-            SerialMsgSt->tm.tm_min = RxData[3];
-            SerialMsgSt->msg = (uint8_t)SERIAL_MSG_ALARM;
-            (void)HIL_QUEUE_WriteISR( &ClockQueue, SerialMsgSt, TIM16_FDCAN_IT0_IRQn );
-            break;
-        
-        default:
-            break;
-        }
-
-        break;
-
-    case STATE_ERROR:
-        TxData[0] = RxData[0];
-
-        for( i = 1u; i < 8u; i++ ){
-            TxData[i] = ERROR_TRANSMIT;
-        }
-
-        HAL_FDCAN_AddMessageToTxFifoQ( &CANHandler, &CANTxHeader, TxData );
-        break;
     
+        break;
+
     default:
         break;
     }
@@ -504,4 +419,34 @@ uint8_t BCDFormatToDecimalFormat( uint8_t numberBCD )
     valueDecimal = ( (numberBCD >> 4u) * 10u ) + (numberBCD & 0xFu);
 
     return valueDecimal;
+}
+
+void errorMsg( void )
+{
+    uint8_t TxData[8];
+    uint8_t i;
+
+    TxData[0] = CAN_TP;
+
+    for( i = 1u; i < 8u; i++ ){
+        TxData[i] = ERROR_TRANSMIT;
+    }
+
+    HAL_FDCAN_AddMessageToTxFifoQ( &CANHandler, &CANTxHeader, TxData );
+}
+
+void validationOK( APP_MsgTypeDef *MsgValidation )
+{
+    uint8_t TxData[8];
+    uint8_t i;
+
+    TxData[0] = CAN_TP;
+
+    for( i = 1u; i < 8u; i++ ){
+        TxData[i] = OK_TRANSMIT;
+    }
+
+    HAL_FDCAN_AddMessageToTxFifoQ( &CANHandler, &CANTxHeader, TxData ); 
+
+    (void)HIL_QUEUE_WriteISR( &ClockQueue, MsgValidation, TIM16_FDCAN_IT0_IRQn );  
 }

@@ -24,7 +24,7 @@ typedef enum
     SERIAL_MSG_DATE,        /*!< Used to use a word in place that a number to more explicit */
 
     SERIAL_MSG_ALARM        /*!< Used to use a word in place that a number to more explicit */
-    
+
 }APP_Messages;
 
 extern APP_Messages typeMessage;
