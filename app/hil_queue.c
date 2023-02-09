@@ -1,12 +1,11 @@
 #include "app_bsp.h"
 #include "hil_queue.h"
-#include <stdio.h>
 #include <string.h>
 
 #define ZERO 0u
 #define ONE 1u
 
-#define ALL_VECTORS 0xFF
+#define ALL_VECTORS 0xFFu
 
 void HIL_QUEUE_Init( QUEUE_HandleTypeDef *hqueue )
 {
@@ -23,7 +22,7 @@ uint8_t HIL_QUEUE_Write( QUEUE_HandleTypeDef *hqueue, void *data )
     uint8_t writingIsSuccessful = ZERO;
 
     if( hqueue->Full == ZERO ){
-        memcpy( hqueue->Buffer + hqueue->Head, data, hqueue->Size );
+        memcpy( hqueue->Buffer + hqueue->Head, data, hqueue->Size );  
         hqueue->Head += hqueue->Size % hqueue->Elements;
         hqueue->CounterWrite++;
 
@@ -70,7 +69,7 @@ uint8_t HIL_QUEUE_IsEmpty( QUEUE_HandleTypeDef *hqueue )
 {
     uint8_t queueIsEmpty = ZERO;
 
-    if( (hqueue->Head == hqueue->Tail) && (hqueue->Full == 0) ){
+    if( (hqueue->Head == hqueue->Tail) && (hqueue->Full == ZERO) ){
         queueIsEmpty = ONE;
     }
     else{
@@ -79,7 +78,7 @@ uint8_t HIL_QUEUE_IsEmpty( QUEUE_HandleTypeDef *hqueue )
     return queueIsEmpty;
 }
 
-void HIL_QUEUE_Flush( QUEUE_HandleTypeDef *hqueue )
+void HIL_QUEUE_Flush( QUEUE_HandleTypeDef *hqueue ) /* cppcheck-suppress misra-c2012-8.7 ; the function isn't used in another file but can be used */
 {   
     hqueue->Head = ZERO;
     hqueue->Tail = ZERO;
@@ -93,13 +92,9 @@ void HIL_QUEUE_Flush( QUEUE_HandleTypeDef *hqueue )
 uint8_t HIL_QUEUE_WriteISR( QUEUE_HandleTypeDef *hqueue, void *data, uint8_t isr )
 {
     uint8_t writingIsSuccessful = ZERO;
-    uint8_t i;
 
     if( isr == ALL_VECTORS ){
-        __disable_irq();
-        /*for( i = 0; i <= 30; i++ ){
-            HAL_NVIC_DisableIRQ( i );
-        }*/   
+        __disable_irq();   
     }
     else{
         HAL_NVIC_DisableIRQ( isr );
@@ -108,10 +103,7 @@ uint8_t HIL_QUEUE_WriteISR( QUEUE_HandleTypeDef *hqueue, void *data, uint8_t isr
     writingIsSuccessful = HIL_QUEUE_Write( hqueue, data );
 
     if( isr == ALL_VECTORS ){
-        __enable_irq();
-        /*for( i = 0; i <= 30; i++ ){
-            HAL_NVIC_EnableIRQ( i );
-        }*/   
+        __enable_irq();   
     }
     else{
         HAL_NVIC_EnableIRQ( isr );
@@ -123,13 +115,9 @@ uint8_t HIL_QUEUE_WriteISR( QUEUE_HandleTypeDef *hqueue, void *data, uint8_t isr
 uint8_t HIL_QUEUE_ReadISR( QUEUE_HandleTypeDef *hqueue, void *data, uint8_t isr )
 {
     uint8_t readingIsSuccessful = ZERO;
-    uint8_t i;
 
     if( isr == ALL_VECTORS ){
-        __disable_irq();
-        /*for( i = 0; i <= 30; i++ ){
-            HAL_NVIC_DisableIRQ( i );
-        }*/  
+        __disable_irq(); 
     }
     else{
         HAL_NVIC_DisableIRQ( isr );
@@ -138,10 +126,7 @@ uint8_t HIL_QUEUE_ReadISR( QUEUE_HandleTypeDef *hqueue, void *data, uint8_t isr 
     readingIsSuccessful = HIL_QUEUE_Read( hqueue, data );   
 
     if( isr == ALL_VECTORS ){
-        __enable_irq();
-        /*for( i = 0; i <= 30; i++ ){
-            HAL_NVIC_EnableIRQ( i );
-        }*/  
+        __enable_irq(); 
     }
     else{
         HAL_NVIC_EnableIRQ( isr );
@@ -153,13 +138,9 @@ uint8_t HIL_QUEUE_ReadISR( QUEUE_HandleTypeDef *hqueue, void *data, uint8_t isr 
 uint8_t HIL_QUEUE_IsEmptyISR( QUEUE_HandleTypeDef *hqueue, uint8_t isr )
 {
     uint8_t queueIsEmpty = ZERO;
-    uint8_t i;
 
     if( isr == ALL_VECTORS ){
-        __disable_irq();
-        /*for( i = 0; i <= 30; i++ ){
-            HAL_NVIC_DisableIRQ( i );
-        }*/   
+        __disable_irq();  
     }
     else{
         HAL_NVIC_DisableIRQ( isr );
@@ -168,10 +149,7 @@ uint8_t HIL_QUEUE_IsEmptyISR( QUEUE_HandleTypeDef *hqueue, uint8_t isr )
     queueIsEmpty = HIL_QUEUE_IsEmpty( hqueue );
 
     if( isr == ALL_VECTORS ){
-        __enable_irq();
-        /*for( i = 0; i <= 30; i++ ){
-            HAL_NVIC_EnableIRQ( i );
-        }*/   
+        __enable_irq();   
     }
     else{
         HAL_NVIC_EnableIRQ( isr );
@@ -182,13 +160,8 @@ uint8_t HIL_QUEUE_IsEmptyISR( QUEUE_HandleTypeDef *hqueue, uint8_t isr )
 
 void HIL_QUEUE_FlushISR( QUEUE_HandleTypeDef *hqueue, uint8_t isr )
 {
-    uint8_t i;
-
     if( isr == ALL_VECTORS ){
-        __disable_irq();
-        /*for( i = 0; i <= 30; i++ ){
-            HAL_NVIC_DisableIRQ( i );
-        }*/   
+        __disable_irq();   
     }
     else{
         HAL_NVIC_DisableIRQ( isr );
@@ -197,10 +170,7 @@ void HIL_QUEUE_FlushISR( QUEUE_HandleTypeDef *hqueue, uint8_t isr )
     HIL_QUEUE_Flush( hqueue );
 
     if( isr == ALL_VECTORS ){
-        __enable_irq();
-        /*for( i = 0; i <= 30; i++ ){
-            HAL_NVIC_EnableIRQ( i );
-        }*/  
+        __enable_irq();  
     }
     else{
         HAL_NVIC_EnableIRQ( isr );
