@@ -63,7 +63,7 @@
 static void Display_StMachine( APP_MsgTypeDef *DisplayMsg );
 static void monthNumberToMonthWord( APP_MsgTypeDef *DisplayMsg );
 static void weekDayNumberToWeekDayWord( APP_MsgTypeDef *DisplayMsg );
-extern char *	itoa (int, char *, int);
+extern char *	itoa (int, char *, int); /* cppcheck-suppress misra-c2012-8.2 ; prototype function to can use itoa functions */
 
 /**
  * @brief  Variable for LCD Handle Structure definition
@@ -162,6 +162,9 @@ void Display_StMachine( APP_MsgTypeDef *DisplayMsg )
     char DisplayMsgtm_sec[3]; 
     char DisplayMsgtm_mday[3];
     char DisplayMsgtm_year[5];
+    char alert[10] = {"ALARM!!!"};  /* cppcheck-suppress misra-c2012-9.2 ; is a positive false because says that the variable hasn't braces*/
+    char alarmConfig[9] = {"ALARM="};   /* cppcheck-suppress misra-c2012-9.2 ; is a positive false because says that the variable hasn't braces*/
+    char alarmNoConfig[18] = {"ALARM NO CONFIG"};   /* cppcheck-suppress misra-c2012-9.2 ; is a positive false because says that the variable hasn't braces*/
     static uint8_t flagPrintA = FALSE;
 
     switch (DisplayMsg->msg)
@@ -229,7 +232,7 @@ void Display_StMachine( APP_MsgTypeDef *DisplayMsg )
         HEL_LCD_SetCursor( &LCD_Structure, 1, 0 );
         HEL_LCD_Data( &LCD_Structure, ' ' );
         HEL_LCD_SetCursor( &LCD_Structure, 1, 4 );
-        HEL_LCD_String( &LCD_Structure, "ALARM!!!" );
+        HEL_LCD_String( &LCD_Structure, alert );
 
         HEL_LCD_Backlight( &LCD_Structure, 3u );
 
@@ -262,7 +265,7 @@ void Display_StMachine( APP_MsgTypeDef *DisplayMsg )
 
         if( flagPrintA == TRUE ){
             HEL_LCD_SetCursor( &LCD_Structure, 1, 3 );
-            HEL_LCD_String( &LCD_Structure, "ALARM=" );
+            HEL_LCD_String( &LCD_Structure, alarmConfig );
             HEL_LCD_SetCursor( &LCD_Structure, 1, 9 );
             HEL_LCD_String( &LCD_Structure, DisplayMsgtm_hour );
             HEL_LCD_SetCursor( &LCD_Structure, 1, 11 );
@@ -272,7 +275,7 @@ void Display_StMachine( APP_MsgTypeDef *DisplayMsg )
         }
         else{
             HEL_LCD_SetCursor( &LCD_Structure, 1, 0 );
-            HEL_LCD_String( &LCD_Structure, "ALARM NO CONFIG" );
+            HEL_LCD_String( &LCD_Structure, alarmNoConfig );
         }
 
         (void)itoa( DisplayMsg->tm.tm_mday, DisplayMsgtm_mday, 10 );
