@@ -31,6 +31,7 @@
 #define MINUTE 60u  
 #define TRUE 1u
 #define FALSE 0u
+#define CLEAR 0x01u
 /**
   @} */
 
@@ -246,6 +247,9 @@ void Clock_StMachine( APP_MsgTypeDef *ClockMsg )
         sTime.StoreOperation = RTC_STOREOPERATION_RESET;
         HAL_RTC_SetTime( &hrtc, &sTime, RTC_FORMAT_BIN );
 
+        alarmActive = FALSE;
+        HEL_LCD_Command( &LCD_Structure, CLEAR );
+
         ClockMsg->msg = STATE_GET_TIME_AND_DATE;
         break;
 
@@ -257,6 +261,9 @@ void Clock_StMachine( APP_MsgTypeDef *ClockMsg )
         sDate.Month = ClockMsg->tm.tm_mon; 
         sDate.Year = (ClockMsg->tm.tm_year % ONE_HUNDRED);
         HAL_RTC_SetDate( &hrtc, &sDate, RTC_FORMAT_BIN );
+
+        alarmActive = FALSE;
+        HEL_LCD_Command( &LCD_Structure, CLEAR );
 
         ClockMsg->msg = STATE_GET_TIME_AND_DATE;
         break;
@@ -311,7 +318,7 @@ void HAL_GPIO_EXTI_Falling_Callback( uint16_t GPIO_Pin )
 void HAL_GPIO_EXTI_Rising_Callback( uint16_t GPIO_Pin )
 {
     showAlarm = FALSE;
-    HEL_LCD_Command( &LCD_Structure, 0x01u );
+    HEL_LCD_Command( &LCD_Structure, CLEAR );
 }
 
 void runAlarm( void )
@@ -324,6 +331,6 @@ void runAlarm( void )
     else{
         alarmActive = FALSE;
         seconds = FALSE;
-        HEL_LCD_Command( &LCD_Structure, 0x01u );
+        HEL_LCD_Command( &LCD_Structure, CLEAR );
     }
 }
