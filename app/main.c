@@ -35,13 +35,6 @@
 /**
   @} */
 
-/** 
-  * @defgroup Heartbeat Define to the heart beat function
-  @{ */
-#define TOGGLE_LED 300      /*!< Is the time to toggle the pin 0 in the port C */
-/**
-  @} */
-
 static void Heart_Init( void );
 static void Heart_Beat( void );
 static void Dog_Init( void );
@@ -57,13 +50,8 @@ WWDG_HandleTypeDef hwwdg;
  */
 GPIO_InitTypeDef GPIO_InitStruct;
 
-/**
- * @brief  Global variable because is used in two functions
- */
-static uint32_t tickstartPethTheDog;
 
-static Task_TypeDef tasks[TASKS_N];
-static Timer_TypeDef timers[1u];
+
 Scheduler_HandleTypeDef Sche;
 
 /**
@@ -79,6 +67,9 @@ Scheduler_HandleTypeDef Sche;
  */
 int main( void )
 {
+    Task_TypeDef tasks[TASKS_N];
+    Timer_TypeDef timers[1u];
+
     HAL_Init();
 
     Sche.tick = TICK_VAL;
@@ -88,11 +79,12 @@ int main( void )
     Sche.timerPtr = timers;
     HIL_SCHEDULER_Init( &Sche );
 
-    HIL_SCHEDULER_RegisterTask( &Sche, Clock_Init, Clock_Task, 50u );
-    HIL_SCHEDULER_RegisterTask( &Sche, Display_Init, Display_Task, 100u );
-    HIL_SCHEDULER_RegisterTask( &Sche, Heart_Init, Heart_Beat, 300u );
-    HIL_SCHEDULER_RegisterTask( &Sche, Serial_Init, Serial_Task, 10u );
-    
+    (void)HIL_SCHEDULER_RegisterTask( &Sche, Clock_Init, Clock_Task, 50u );
+    (void)HIL_SCHEDULER_RegisterTask( &Sche, Display_Init, Display_Task, 100u );
+    (void)HIL_SCHEDULER_RegisterTask( &Sche, Heart_Init, Heart_Beat, 300u );
+    (void)HIL_SCHEDULER_RegisterTask( &Sche, Serial_Init, Serial_Task, 10u );
+    /*(void)HIL_SCHEDULER_RegisterTask( &Sche, Dog_Init, Peth_The_Dog, 30u );*/
+
     HIL_SCHEDULER_Start( &Sche );
 }
 
@@ -160,8 +152,6 @@ void Dog_Init( void )
     hwwdg.Init.Counter = WWDG_COUNTER;  /*WWDG_COUNTER; 127 = 32ms*/    
     hwwdg.Init.EWIMode = WWDG_EWI_DISABLE;
     HAL_WWDG_Init( &hwwdg );
-
-    tickstartPethTheDog = HAL_GetTick();
 }
 
 /**
@@ -176,10 +166,7 @@ void Dog_Init( void )
  */
 void Peth_The_Dog( void )
 {
-    if( (HAL_GetTick() - tickstartPethTheDog) >= 30 ){  /*25 - 32*/
-        tickstartPethTheDog = HAL_GetTick();
-        HAL_WWDG_Refresh( &hwwdg );
-    }
+    HAL_WWDG_Refresh( &hwwdg ); /*25 - 32*/
 }
 
 
