@@ -36,11 +36,7 @@ void SysTick_Handler( void )
  */
 void EXTI4_15_IRQHandler( void )
 {
-    /*funcion que realiza las operaciones de interrupcion del gpio*/
     HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_9 );
-    HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_8 );
-    HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_7 );
-    HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_13 );
 }
 
 /**

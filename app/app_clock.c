@@ -27,7 +27,10 @@
 /** 
   * @defgroup Numbers Define of unsigned numbers
   @{ */
-#define ONE_HUNDRED 100u    /*!< Used to divide the year in two parts */   
+#define ONE_HUNDRED 100u    /*!< Used to divide the year in two parts */ 
+#define MINUTE 60u  
+#define TRUE 1u
+#define FALSE 0u
 /**
   @} */
 
@@ -80,7 +83,8 @@ static RTC_DateTypeDef sDate = {0};
  */
 static RTC_AlarmTypeDef sAlarm = {0};
 
-volatile uint8_t alarmActive = 0u;
+volatile uint8_t alarmActive = FALSE;
+volatile uint8_t showAlarm = FALSE;
 
 static void Clock_StMachine( APP_MsgTypeDef *ClockMsg );
 static void Clock_OneSec_Callback( void );
@@ -140,6 +144,17 @@ void Clock_Init( void )
     sAlarm.Alarm = RTC_ALARM_A;
     HAL_RTC_SetAlarm_IT( &hrtc, &sAlarm, RTC_FORMAT_BCD );
 
+    __GPIOB_CLK_ENABLE();
+
+    GPIO_InitStruct.Pin  = GPIO_PIN_9;
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init( GPIOB, &GPIO_InitStruct );
+
+    HAL_NVIC_SetPriority( EXTI4_15_IRQn, 3, 0 );
+    HAL_NVIC_EnableIRQ( EXTI4_15_IRQn );
+
     HIL_SCHEDULER_RegisterTimer( &Sche, 1000u, Clock_OneSec_Callback );
 
     HIL_SCHEDULER_StartTimer( &Sche, 1u );
@@ -181,8 +196,8 @@ void Clock_StMachine( APP_MsgTypeDef *ClockMsg )
         HAL_RTC_GetDate( &hrtc, &sDate, RTC_FORMAT_BIN );
         HAL_RTC_GetAlarm( &hrtc, &sAlarm, RTC_ALARM_A, RTC_FORMAT_BIN );
 
-        if( alarmActive == 1u ){
-            ClockMsg->msg = 4u;
+        if( alarmActive == TRUE ){
+            ClockMsg->msg = STATE_GET_ALARM;
             ClockMsg->tm.tm_hour = sTime.Hours;
             ClockMsg->tm.tm_min = sTime.Minutes;
             ClockMsg->tm.tm_sec = sTime.Seconds;
@@ -277,18 +292,31 @@ void HAL_RTC_AlarmAEventCallback( RTC_HandleTypeDef *hrtc )
 {
     *hrtc = *hrtc;
 
-    alarmActive = 1u;
+    alarmActive = TRUE;
+}
+
+void HAL_GPIO_EXTI_Falling_Callback( uint16_t GPIO_Pin )
+{
+    showAlarm = TRUE;
+    alarmActive = FALSE;
+}
+
+void HAL_GPIO_EXTI_Rising_Callback( uint16_t GPIO_Pin )
+{
+    showAlarm = FALSE;
+    MOD_LCD_Command( &hlcd, 0x01u );
 }
 
 void runAlarm( void )
 {
-    static uint16_t i = 0u;
+    static uint16_t seconds = FALSE;
 
-    if( i < 61u ){
-        i++;
+    if( seconds <= MINUTE ){
+        seconds++;
     }
     else{
-        alarmActive = 0u;
+        alarmActive = FALSE;
+        seconds = FALSE;
         HEL_LCD_Command( &LCD_Structure, 0x01u );
     }
 }

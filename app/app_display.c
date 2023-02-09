@@ -225,6 +225,8 @@ void Display_StMachine( APP_MsgTypeDef *DisplayMsg )
             HEL_LCD_Command( &LCD_Structure, CLEAR );
         }
 
+        HEL_LCD_SetCursor( &LCD_Structure, 1, 0 );
+        HEL_LCD_Data( &LCD_Structure, ' ' );
         HEL_LCD_SetCursor( &LCD_Structure, 1, 4 );
         HEL_LCD_String( &LCD_Structure, "ALARM!!!" );
 
