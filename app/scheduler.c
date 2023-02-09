@@ -23,7 +23,7 @@ uint8_t HIL_SCHEDULER_RegisterTask( Scheduler_HandleTypeDef *hscheduler, void (*
 {
     uint8_t taskID = ZERO;
 
-    if( (Period > ZERO) && (Period % hscheduler->tick == ZERO) && (TaskPtr != NULL) ){
+    if( (Period > ZERO) && ( (Period % hscheduler->tick) == ZERO) && (TaskPtr != NULL) ){
         hscheduler->taskPtr[hscheduler->tasksCount].initFunc = InitPtr;
         hscheduler->taskPtr[hscheduler->tasksCount].period = Period;
         hscheduler->taskPtr[hscheduler->tasksCount].taskFunc = TaskPtr;
@@ -136,7 +136,7 @@ uint8_t HIL_SCHEDULER_RegisterTimer( Scheduler_HandleTypeDef *hscheduler, uint32
 {
     uint8_t timerID;
 
-    if( (Timeout > ZERO) && (Timeout % hscheduler->tick == ZERO) ){
+    if( (Timeout > ZERO) && ( (Timeout % hscheduler->tick) == ZERO) ){
         hscheduler->timerPtr[hscheduler->timersCount].callbackPtr = CallbackPtr;
         hscheduler->timerPtr[hscheduler->timersCount].Timeout = Timeout;
         hscheduler->timersCount++;
