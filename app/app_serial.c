@@ -52,18 +52,6 @@
   @} */
 
 /** 
-  * @defgroup Substates Substates to we know what is the substate without errors
-  @{ */
-#define STATE_HOURS 1u      /*!< State to validate the hours */
-#define STATE_MINUTES 2u    /*!< State to validate the minutes */
-#define STATE_SECONDS 3u    /*!< State to validate the seconds */
-#define STATE_DAY 1u        /*!< State to validate the day of the month */
-#define STATE_MONTH 2u      /*!< State to validate the month */
-#define STATE_YEAR 3u       /*!< State to validate the year */
-/**
-  @} */
-
-/** 
   * @defgroup CAN Values used in the transmission or reception of CAN
   @{ */
 #define ERROR_TRANSMIT 0xAAu    /*!< Value to send when is an error message */
@@ -93,12 +81,12 @@
 /**
  * @brief  Global variable to use the buffer to CAN
  */
-static uint64_t bufferSerial[BUFFER_MAX_SIZE];
+static uint64_t bufferSerial[BUFFER_MAX_SIZE];  /* cppcheck-suppress misra-c2012-8.9 ; the variable is used in two functions but isn't detect */
 
 /**
  * @brief  APP MSG Structure definition to use the buffer between Serial and Clock
  */
-APP_MsgTypeDef bufferClock[45];
+APP_MsgTypeDef bufferClock[45]; /* cppcheck-suppress misra-c2012-8.7 ; the variable is used in two files but isn't detect */
 
 /**
  * @brief  Variable for QUEUE Handle Structure definition
