@@ -38,8 +38,6 @@ typedef struct
 
 }LCD_HandleTypeDef;
 
-extern LCD_HandleTypeDef hlcd;
-
 extern void HEL_LCD_Init( LCD_HandleTypeDef *hlcd );
 extern void HEL_LCD_MspInit( LCD_HandleTypeDef *hlcd );
 extern void HEL_LCD_Command( LCD_HandleTypeDef *hlcd, uint8_t cmd );
