@@ -67,7 +67,7 @@ QUEUE_HandleTypeDef DisplayQueue;
 /**
  * @brief  Variable for RTC Handle Structure definition
  */
-RTC_HandleTypeDef hrtc;
+RTC_HandleTypeDef RTC_Structure;
 
 /**
  * @brief  Variable for RTC Time structure definition
@@ -84,11 +84,14 @@ static RTC_DateTypeDef sDate = {0};
  */
 static RTC_AlarmTypeDef sAlarm = {0};
 
-volatile uint8_t alarmActive = FALSE;
-volatile uint8_t showAlarm = FALSE;
+static volatile uint8_t alarmActive = FALSE;
+static volatile uint8_t showAlarm = FALSE;
 
 static void Clock_StMachine( APP_MsgTypeDef *ClockMsg );
 static void Clock_OneSec_Callback( void );
+void HAL_RTC_AlarmAEventCallback( RTC_HandleTypeDef *hrtc );
+void HAL_GPIO_EXTI_Falling_Callback( uint16_t GPIO_Pin );
+void HAL_GPIO_EXTI_Rising_Callback( uint16_t GPIO_Pin );
 static void runAlarm( void );
 
 /**
@@ -111,12 +114,12 @@ void Clock_Init( void )
     HAL_NVIC_SetPriority( RTC_TAMP_IRQn, 2, 0 );
     HAL_NVIC_EnableIRQ( RTC_TAMP_IRQn );
 
-    hrtc.Instance = RTC;
-    hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
-    hrtc.Init.AsynchPrediv = RTC_ASYNCH_PREDIV;
-    hrtc.Init.SynchPrediv = RTC_SYNCH_PREDIV;
-    hrtc.Init.OutPut = RTC_OUTPUT_DISABLE;
-    HAL_RTC_Init( &hrtc );
+    RTC_Structure.Instance = RTC;
+    RTC_Structure.Init.HourFormat = RTC_HOURFORMAT_24;
+    RTC_Structure.Init.AsynchPrediv = RTC_ASYNCH_PREDIV;
+    RTC_Structure.Init.SynchPrediv = RTC_SYNCH_PREDIV;
+    RTC_Structure.Init.OutPut = RTC_OUTPUT_DISABLE;
+    HAL_RTC_Init( &RTC_Structure );
 
     sTime.Hours = 0x23;
     sTime.Minutes = 0x59;
@@ -124,13 +127,13 @@ void Clock_Init( void )
     sTime.SubSeconds = 0x00;
     sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
     sTime.StoreOperation = RTC_STOREOPERATION_RESET;
-    HAL_RTC_SetTime( &hrtc, &sTime, RTC_FORMAT_BCD );
+    HAL_RTC_SetTime( &RTC_Structure, &sTime, RTC_FORMAT_BCD );
 
     sDate.WeekDay = RTC_WEEKDAY_SATURDAY;
     sDate.Month = RTC_MONTH_APRIL;
     sDate.Date = 0x30;
     sDate.Year = 0x22;
-    HAL_RTC_SetDate( &hrtc, &sDate, RTC_FORMAT_BCD );
+    HAL_RTC_SetDate( &RTC_Structure, &sDate, RTC_FORMAT_BCD );
 
     sAlarm.AlarmTime.Hours = 0x12;
     sAlarm.AlarmTime.Minutes = 0x30;
@@ -143,7 +146,7 @@ void Clock_Init( void )
     sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
     sAlarm.AlarmDateWeekDay = 0x1;
     sAlarm.Alarm = RTC_ALARM_A;
-    HAL_RTC_SetAlarm_IT( &hrtc, &sAlarm, RTC_FORMAT_BCD );
+    HAL_RTC_SetAlarm_IT( &RTC_Structure, &sAlarm, RTC_FORMAT_BCD );
 
     __GPIOB_CLK_ENABLE();
 
@@ -156,9 +159,9 @@ void Clock_Init( void )
     HAL_NVIC_SetPriority( EXTI4_15_IRQn, 3, 0 );
     HAL_NVIC_EnableIRQ( EXTI4_15_IRQn );
 
-    HIL_SCHEDULER_RegisterTimer( &Sche, 1000u, Clock_OneSec_Callback );
+    (void)HIL_SCHEDULER_RegisterTimer( &Sche, 1000u, Clock_OneSec_Callback );
 
-    HIL_SCHEDULER_StartTimer( &Sche, 1u );
+    (void)HIL_SCHEDULER_StartTimer( &Sche, 1u );
 }
 
 /**
@@ -193,9 +196,9 @@ void Clock_StMachine( APP_MsgTypeDef *ClockMsg )
     switch (ClockMsg->msg)
     {
     case STATE_GET_TIME_AND_DATE:
-        HAL_RTC_GetTime( &hrtc, &sTime, RTC_FORMAT_BIN );
-        HAL_RTC_GetDate( &hrtc, &sDate, RTC_FORMAT_BIN );
-        HAL_RTC_GetAlarm( &hrtc, &sAlarm, RTC_ALARM_A, RTC_FORMAT_BIN );
+        HAL_RTC_GetTime( &RTC_Structure, &sTime, RTC_FORMAT_BIN );
+        HAL_RTC_GetDate( &RTC_Structure, &sDate, RTC_FORMAT_BIN );
+        HAL_RTC_GetAlarm( &RTC_Structure, &sAlarm, RTC_ALARM_A, RTC_FORMAT_BIN );
 
         if( (alarmActive == TRUE) && (showAlarm == FALSE) ){
             ClockMsg->msg = STATE_GET_ALARM;
@@ -245,7 +248,7 @@ void Clock_StMachine( APP_MsgTypeDef *ClockMsg )
         sTime.SubSeconds = 0x00;
         sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
         sTime.StoreOperation = RTC_STOREOPERATION_RESET;
-        HAL_RTC_SetTime( &hrtc, &sTime, RTC_FORMAT_BIN );
+        HAL_RTC_SetTime( &RTC_Structure, &sTime, RTC_FORMAT_BIN );
 
         alarmActive = FALSE;
         HEL_LCD_Command( &LCD_Structure, CLEAR );
@@ -260,7 +263,7 @@ void Clock_StMachine( APP_MsgTypeDef *ClockMsg )
         sDate.Date = ClockMsg->tm.tm_mday;
         sDate.Month = ClockMsg->tm.tm_mon; 
         sDate.Year = (ClockMsg->tm.tm_year % ONE_HUNDRED);
-        HAL_RTC_SetDate( &hrtc, &sDate, RTC_FORMAT_BIN );
+        HAL_RTC_SetDate( &RTC_Structure, &sDate, RTC_FORMAT_BIN );
 
         alarmActive = FALSE;
         HEL_LCD_Command( &LCD_Structure, CLEAR );
@@ -281,10 +284,10 @@ void Clock_StMachine( APP_MsgTypeDef *ClockMsg )
         sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
         sAlarm.AlarmDateWeekDay = 0x1;
         sAlarm.Alarm = RTC_ALARM_A;
-        HAL_RTC_SetAlarm_IT( &hrtc, &sAlarm, RTC_FORMAT_BIN );
+        HAL_RTC_SetAlarm_IT( &RTC_Structure, &sAlarm, RTC_FORMAT_BIN );
 
         ClockMsg->msg = (uint8_t)SERIAL_MSG_ALARM;
-        HIL_QUEUE_WriteISR( &DisplayQueue, ClockMsg, RTC_TAMP_IRQn );
+        (void)HIL_QUEUE_WriteISR( &DisplayQueue, ClockMsg, RTC_TAMP_IRQn );
         break;
     
     default:
@@ -297,9 +300,9 @@ void Clock_OneSec_Callback( void )
     APP_MsgTypeDef tClockMsg;
 
     tClockMsg.msg = STATE_GET_TIME_AND_DATE;
-    HIL_QUEUE_WriteISR( &ClockQueue, &tClockMsg, RTC_TAMP_IRQn );
+    (void)HIL_QUEUE_WriteISR( &ClockQueue, &tClockMsg, RTC_TAMP_IRQn );
 
-    HIL_SCHEDULER_StartTimer( &Sche, 1u );
+    (void)HIL_SCHEDULER_StartTimer( &Sche, 1u );
 }
 
 void HAL_RTC_AlarmAEventCallback( RTC_HandleTypeDef *hrtc )
@@ -311,12 +314,14 @@ void HAL_RTC_AlarmAEventCallback( RTC_HandleTypeDef *hrtc )
 
 void HAL_GPIO_EXTI_Falling_Callback( uint16_t GPIO_Pin )
 {
+    (void)GPIO_Pin;
     showAlarm = TRUE;
     alarmActive = FALSE;
 }
 
 void HAL_GPIO_EXTI_Rising_Callback( uint16_t GPIO_Pin )
 {
+    (void)GPIO_Pin;
     showAlarm = FALSE;
     HEL_LCD_Command( &LCD_Structure, CLEAR );
 }

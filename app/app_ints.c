@@ -53,6 +53,6 @@ void TIM16_FDCAN_IT0_IRQHandler( void )
 
 void RTC_TAMP_IRQHandler( void )
 {
-    HAL_RTC_AlarmIRQHandler( &hrtc );
+    HAL_RTC_AlarmIRQHandler( &RTC_Structure );
 }
 

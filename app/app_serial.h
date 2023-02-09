@@ -56,7 +56,7 @@ extern APP_MsgTypeDef bufferDisplay[90];
 extern FDCAN_HandleTypeDef CANHandler;
 extern FDCAN_TxHeaderTypeDef CANTxHeader;
 extern FDCAN_FilterTypeDef CANFilter;
-extern RTC_HandleTypeDef hrtc;
+extern RTC_HandleTypeDef RTC_Structure;
 
 extern void Serial_Init( void );
 extern void Serial_Task( void );
