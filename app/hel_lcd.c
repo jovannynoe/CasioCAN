@@ -37,8 +37,6 @@
   * @defgroup Contrast Set the contrast
   @{ */
 #define CONTRAST_MAX 0x0Fu  /*!< To set the contrast to maximum */
-#define CONTRAST_MID 0x07u  /*!< To set the contrast to middle */
-#define CONTRAST_MIN 0x00u  /*!< To set the contrast to minimum */
 /**
   @} */
 
@@ -100,7 +98,10 @@ void HEL_LCD_Init( LCD_HandleTypeDef *hlcd )
  * 
  * @retval  None
  */
-__weak void HEL_LCD_MspInit( LCD_HandleTypeDef *hlcd )
+/* cppcheck-suppress misra-c2012-8.6 ; 
+   the weak function is just used in msps file but 
+   the prototype is here */
+__weak void HEL_LCD_MspInit( LCD_HandleTypeDef *hlcd )  /* cppcheck-suppress misra-c2012-8.7 ; the weak function is just used in msps file but the prototype is here */ 
 {
     *hlcd = *hlcd;
 }
@@ -257,7 +258,7 @@ void HEL_LCD_Backlight( LCD_HandleTypeDef *hlcd, uint8_t state )
  * @retval  None
  * 
  */
-void HEL_LCD_Contrast( LCD_HandleTypeDef *hlcd, uint8_t contrast )
+void HEL_LCD_Contrast( LCD_HandleTypeDef *hlcd, uint8_t contrast )  /* cppcheck-suppress misra-c2012-8.7 ; the function isn't used in another file but can be used */  
 {
     HEL_LCD_Command( hlcd, CONTRAST | contrast );  
 }
