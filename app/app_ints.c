@@ -14,6 +14,7 @@
 void SysTick_Handler( void );
 void EXTI4_15_IRQHandler( void );
 void TIM16_FDCAN_IT0_IRQHandler( void );
+void RTC_TAMP_IRQHandler( void );
 
 /**
  * @brief   Function to can use the Systick timer.
