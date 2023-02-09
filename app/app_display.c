@@ -49,6 +49,7 @@
 #define STATE_PRINT_RTC 0u  /*!< State to print the time in LCD */
 #define STATE_PRINT_A 3u
 #define STATE_ALARM_ACTIVE 4u
+#define STATE_SHOW_ALARM 5u
 /**
   @} */
 
@@ -236,6 +237,43 @@ void Display_StMachine( APP_MsgTypeDef *DisplayMsg )
 
         monthNumberToMonthWord( DisplayMsg );
         weekDayNumberToWeekDayWord( DisplayMsg );
+
+        (void)itoa( DisplayMsg->tm.tm_mday, DisplayMsgtm_mday, 10 );
+        (void)itoa( DisplayMsg->tm.tm_year, DisplayMsgtm_year, 10 );
+
+        HEL_LCD_SetCursor( &LCD_Structure, 0, 1 );
+        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_mon );
+        HEL_LCD_SetCursor( &LCD_Structure, 0, 4 );
+        HEL_LCD_Data( &LCD_Structure, ',' );
+        HEL_LCD_SetCursor( &LCD_Structure, 0, 5 );
+        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_mday );
+        HEL_LCD_SetCursor( &LCD_Structure, 0, 8 );
+        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_year );
+        HEL_LCD_SetCursor( &LCD_Structure, 0, 13 );
+        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_wday );
+        HEL_LCD_SetCursor( &LCD_Structure, 0, 0 );
+        HEL_LCD_Data( &LCD_Structure, ' ' );
+        break;
+
+    case STATE_SHOW_ALARM:
+
+        (void)itoa( DisplayMsg->tm.tm_hour, DisplayMsgtm_hour, 10 );
+        (void)itoa( DisplayMsg->tm.tm_min, DisplayMsgtm_min, 10 );
+
+        if( flagPrintA == TRUE ){
+            HEL_LCD_SetCursor( &LCD_Structure, 1, 3 );
+            HEL_LCD_String( &LCD_Structure, "ALARM=" );
+            HEL_LCD_SetCursor( &LCD_Structure, 1, 9 );
+            HEL_LCD_String( &LCD_Structure, DisplayMsgtm_hour );
+            HEL_LCD_SetCursor( &LCD_Structure, 1, 11 );
+            HEL_LCD_Data( &LCD_Structure, ':' );
+            HEL_LCD_SetCursor( &LCD_Structure, 1, 12 );
+            HEL_LCD_String( &LCD_Structure, DisplayMsgtm_min );
+        }
+        else{
+            HEL_LCD_SetCursor( &LCD_Structure, 1, 0 );
+            HEL_LCD_String( &LCD_Structure, "ALARM NO CONFIG" );
+        }
 
         (void)itoa( DisplayMsg->tm.tm_mday, DisplayMsgtm_mday, 10 );
         (void)itoa( DisplayMsg->tm.tm_year, DisplayMsgtm_year, 10 );

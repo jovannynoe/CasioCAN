@@ -196,7 +196,7 @@ void Clock_StMachine( APP_MsgTypeDef *ClockMsg )
         HAL_RTC_GetDate( &hrtc, &sDate, RTC_FORMAT_BIN );
         HAL_RTC_GetAlarm( &hrtc, &sAlarm, RTC_ALARM_A, RTC_FORMAT_BIN );
 
-        if( alarmActive == TRUE ){
+        if( (alarmActive == TRUE) && (showAlarm == FALSE) ){
             ClockMsg->msg = STATE_GET_ALARM;
             ClockMsg->tm.tm_hour = sTime.Hours;
             ClockMsg->tm.tm_min = sTime.Minutes;
@@ -207,6 +207,13 @@ void Clock_StMachine( APP_MsgTypeDef *ClockMsg )
             ClockMsg->tm.tm_wday = sDate.WeekDay;
             ClockMsg->tm.tm_year = (yearMSB * ONE_HUNDRED) + sDate.Year;
             runAlarm();
+        }
+        else if( showAlarm == TRUE ){
+            ClockMsg->msg = 5u;
+            ClockMsg->tm.tm_hour = sAlarm.AlarmTime.Hours;
+            ClockMsg->tm.tm_min = sAlarm.AlarmTime.Minutes;
+            ClockMsg->tm.tm_mday = sDate.Date;
+            ClockMsg->tm.tm_year = (yearMSB * ONE_HUNDRED) + sDate.Year;
         }
         else{
             ClockMsg->tm.tm_hour = sTime.Hours;
@@ -304,7 +311,7 @@ void HAL_GPIO_EXTI_Falling_Callback( uint16_t GPIO_Pin )
 void HAL_GPIO_EXTI_Rising_Callback( uint16_t GPIO_Pin )
 {
     showAlarm = FALSE;
-    MOD_LCD_Command( &hlcd, 0x01u );
+    HEL_LCD_Command( &LCD_Structure, 0x01u );
 }
 
 void runAlarm( void )
