@@ -12,6 +12,9 @@
 #ifndef APP_DISPLAY_H__
 #define APP_DISPLAY_H__
 
+extern LCD_HandleTypeDef LCD_Structure;
+extern GPIO_InitTypeDef GPIO_Buzzer;
+
 extern void Display_Init( void );
 extern void Display_Task( void );
 

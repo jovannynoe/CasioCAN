@@ -47,8 +47,6 @@ static void Heart_Beat( void );
 static void Dog_Init( void );
 static void Peth_The_Dog( void );
 
-static void Toggle_Pin( void );
-
 /**
  * @brief  Variable for WWDG Handle Structure definition
  */
@@ -182,11 +180,6 @@ void Peth_The_Dog( void )
         tickstartPethTheDog = HAL_GetTick();
         HAL_WWDG_Refresh( &hwwdg );
     }
-}
-
-void Toggle_Pin( void )
-{
-    HAL_GPIO_TogglePin( GPIOC, GPIO_PIN_5 );
 }
 
 

@@ -47,6 +47,8 @@
   * @defgroup States States to we know what is the state without errors
   @{ */
 #define STATE_PRINT_RTC 0u  /*!< State to print the time in LCD */
+#define STATE_PRINT_A 3u
+#define STATE_ALARM_ACTIVE 4u
 /**
   @} */
 
@@ -65,7 +67,7 @@ extern char *	itoa (int, char *, int);
 /**
  * @brief  Variable for LCD Handle Structure definition
  */
-static LCD_HandleTypeDef LCD_Structure;
+LCD_HandleTypeDef LCD_Structure;
 
 /**
  * @brief  Global variable because is used in two functions to manipulate the months in array
@@ -76,6 +78,8 @@ static char DisplayMsgtm_mon[4];
  * @brief  Global variable because is used in two functions to manipulate the week days in array
  */
 static char DisplayMsgtm_wday[3];
+
+GPIO_InitTypeDef GPIO_Buzzer;
 
 /**
  * @brief   Display init function is to configurate the SPI peripheral to can use the LCD.
@@ -117,6 +121,12 @@ void Display_Init( void )
     LCD_Structure.RstPort = GPIOC;
     LCD_Structure.SpiHandler = &SpiHandle;
     HEL_LCD_Init( &LCD_Structure );
+
+    GPIO_Buzzer.Pin = GPIO_PIN_14;
+    GPIO_Buzzer.Mode = GPIO_MODE_OUTPUT_PP;    
+    GPIO_Buzzer.Pull = GPIO_NOPULL;    
+    GPIO_Buzzer.Speed = GPIO_SPEED_FREQ_LOW;    
+    HAL_GPIO_Init( GPIOB, &GPIO_Buzzer );
 }
 
 /**
@@ -151,6 +161,7 @@ void Display_StMachine( APP_MsgTypeDef *DisplayMsg )
     char DisplayMsgtm_sec[3]; 
     char DisplayMsgtm_mday[3];
     char DisplayMsgtm_year[5];
+    static uint8_t flagPrintA = FALSE;
 
     switch (DisplayMsg->msg)
     {
@@ -160,6 +171,8 @@ void Display_StMachine( APP_MsgTypeDef *DisplayMsg )
         if( DisplayMsg->tm.tm_sec == 0u ){
             HEL_LCD_Command( &LCD_Structure, CLEAR );
         }
+
+        HEL_LCD_Backlight( &LCD_Structure, 1u );
 
         (void)itoa( DisplayMsg->tm.tm_hour, DisplayMsgtm_hour, 10 );
         (void)itoa( DisplayMsg->tm.tm_min, DisplayMsgtm_min, 10 );
@@ -175,10 +188,6 @@ void Display_StMachine( APP_MsgTypeDef *DisplayMsg )
         HEL_LCD_Data( &LCD_Structure, ':' );
         HEL_LCD_SetCursor( &LCD_Structure, 1, 9 );
         HEL_LCD_String( &LCD_Structure, DisplayMsgtm_sec );
-
-        if( DisplayMsg->tm.tm_sec == 0u ){
-            HEL_LCD_Command( &LCD_Structure, CLEAR );
-        }
 
         monthNumberToMonthWord( DisplayMsg );
         weekDayNumberToWeekDayWord( DisplayMsg );
@@ -196,6 +205,51 @@ void Display_StMachine( APP_MsgTypeDef *DisplayMsg )
         HEL_LCD_String( &LCD_Structure, DisplayMsgtm_year );
         HEL_LCD_SetCursor( &LCD_Structure, 0, 13 );
         HEL_LCD_String( &LCD_Structure, DisplayMsgtm_wday );
+        HEL_LCD_SetCursor( &LCD_Structure, 0, 0 );
+        HEL_LCD_Data( &LCD_Structure, ' ' );
+
+        if( flagPrintA == TRUE ){
+            HEL_LCD_SetCursor( &LCD_Structure, 1, 0 );
+            HEL_LCD_Data( &LCD_Structure, 'A' );    
+        }
+        break;
+
+    case STATE_PRINT_A:
+        flagPrintA = TRUE;
+        break;
+
+    case STATE_ALARM_ACTIVE:
+        flagPrintA = FALSE;
+
+        if( DisplayMsg->tm.tm_sec == 0u ){
+            HEL_LCD_Command( &LCD_Structure, CLEAR );
+        }
+
+        HEL_LCD_SetCursor( &LCD_Structure, 1, 4 );
+        HEL_LCD_String( &LCD_Structure, "ALARM!!!" );
+
+        HEL_LCD_Backlight( &LCD_Structure, 3u );
+
+        HAL_GPIO_TogglePin( GPIOB, GPIO_PIN_14 );
+
+        monthNumberToMonthWord( DisplayMsg );
+        weekDayNumberToWeekDayWord( DisplayMsg );
+
+        (void)itoa( DisplayMsg->tm.tm_mday, DisplayMsgtm_mday, 10 );
+        (void)itoa( DisplayMsg->tm.tm_year, DisplayMsgtm_year, 10 );
+
+        HEL_LCD_SetCursor( &LCD_Structure, 0, 1 );
+        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_mon );
+        HEL_LCD_SetCursor( &LCD_Structure, 0, 4 );
+        HEL_LCD_Data( &LCD_Structure, ',' );
+        HEL_LCD_SetCursor( &LCD_Structure, 0, 5 );
+        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_mday );
+        HEL_LCD_SetCursor( &LCD_Structure, 0, 8 );
+        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_year );
+        HEL_LCD_SetCursor( &LCD_Structure, 0, 13 );
+        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_wday );
+        HEL_LCD_SetCursor( &LCD_Structure, 0, 0 );
+        HEL_LCD_Data( &LCD_Structure, ' ' );
         break;
     
     default:
