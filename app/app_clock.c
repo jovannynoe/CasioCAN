@@ -57,7 +57,7 @@
 /**
  * @brief  APP MSG Structure definition to use the buffer between Clock and Display
  */
-APP_MsgTypeDef bufferDisplay[BUFFER_MAX_SIZE];
+APP_MsgTypeDef bufferDisplay[BUFFER_MAX_SIZE];  /* cppcheck-suppress misra-c2012-8.7 ; the variable is used in another file for this reason isn't inside of the function */
 
 /**
  * @brief  Variable for QUEUE Handle Structure definition
