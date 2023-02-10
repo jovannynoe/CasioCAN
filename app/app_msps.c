@@ -183,7 +183,7 @@ void HAL_SPI_MspInit( SPI_HandleTypeDef *hspi )
  * @retval  None
  * 
  */
-void HEL_LCD_MspInit( LCD_HandleTypeDef *hlcd )
+void HEL_LCD_MspInit( LCD_HandleTypeDef *hlcd ) /* cppcheck-suppress misra-c2012-8.6 ; the function was declared like extern because was defined in hel_lcd source file */
 {
     *hlcd = *hlcd;
 

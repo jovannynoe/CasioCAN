@@ -32,6 +32,7 @@
 #define TRUE 1u
 #define FALSE 0u
 #define CLEAR 0x01u
+#define ONE_SECOND 1u
 /**
   @} */
 
@@ -161,7 +162,7 @@ void Clock_Init( void )
 
     (void)HIL_SCHEDULER_RegisterTimer( &Sche, 1000u, Clock_OneSec_Callback );
 
-    (void)HIL_SCHEDULER_StartTimer( &Sche, 1u );
+    (void)HIL_SCHEDULER_StartTimer( &Sche, ONE_SECOND );
 }
 
 /**
