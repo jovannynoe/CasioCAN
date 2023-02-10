@@ -57,13 +57,19 @@
   * @defgroup Commands Commands to can use the LCD
   @{ */
 #define CLEAR 0x01u /*!< Command to clear the LCD */ 
+#define LCD_ON 1u
+#define LCD_TOGGLE 3u
 /**
   @} */
+
+#define BUZZER GPIO_PIN_14
 
 static void Display_StMachine( APP_MsgTypeDef *DisplayMsg );
 static void monthNumberToMonthWord( APP_MsgTypeDef *DisplayMsg );
 static void weekDayNumberToWeekDayWord( APP_MsgTypeDef *DisplayMsg );
 extern char *	itoa (int, char *, int); /* cppcheck-suppress misra-c2012-8.2 ; prototype function to can use itoa functions */
+static void printTime( char *hours, char *minutes, char *seconds );
+static void printDate( char *month, char *day, char *year, char *weekDay );
 
 /**
  * @brief  Variable for LCD Handle Structure definition
@@ -123,7 +129,7 @@ void Display_Init( void )
     LCD_Structure.SpiHandler = &SpiHandle;
     HEL_LCD_Init( &LCD_Structure );
 
-    GPIO_Buzzer.Pin = GPIO_PIN_14;
+    GPIO_Buzzer.Pin = BUZZER;
     GPIO_Buzzer.Mode = GPIO_MODE_OUTPUT_PP;    
     GPIO_Buzzer.Pull = GPIO_NOPULL;    
     GPIO_Buzzer.Speed = GPIO_SPEED_FREQ_LOW;    
@@ -176,22 +182,13 @@ void Display_StMachine( APP_MsgTypeDef *DisplayMsg )
             HEL_LCD_Command( &LCD_Structure, CLEAR );
         }
 
-        HEL_LCD_Backlight( &LCD_Structure, 1u );
+        HEL_LCD_Backlight( &LCD_Structure, LCD_ON );
 
         (void)itoa( DisplayMsg->tm.tm_hour, DisplayMsgtm_hour, 10 );
         (void)itoa( DisplayMsg->tm.tm_min, DisplayMsgtm_min, 10 );
         (void)itoa( DisplayMsg->tm.tm_sec, DisplayMsgtm_sec, 10 );
 
-        HEL_LCD_SetCursor( &LCD_Structure, 1, 3 );
-        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_hour ); 
-        HEL_LCD_SetCursor( &LCD_Structure, 1, 5 );
-        HEL_LCD_Data( &LCD_Structure, ':' );
-        HEL_LCD_SetCursor( &LCD_Structure, 1, 6 );
-        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_min );
-        HEL_LCD_SetCursor( &LCD_Structure, 1, 8 );
-        HEL_LCD_Data( &LCD_Structure, ':' );
-        HEL_LCD_SetCursor( &LCD_Structure, 1, 9 );
-        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_sec );
+        printTime( DisplayMsgtm_hour, DisplayMsgtm_min, DisplayMsgtm_sec );
 
         monthNumberToMonthWord( DisplayMsg );
         weekDayNumberToWeekDayWord( DisplayMsg );
@@ -199,18 +196,7 @@ void Display_StMachine( APP_MsgTypeDef *DisplayMsg )
         (void)itoa( DisplayMsg->tm.tm_mday, DisplayMsgtm_mday, 10 );
         (void)itoa( DisplayMsg->tm.tm_year, DisplayMsgtm_year, 10 );
 
-        HEL_LCD_SetCursor( &LCD_Structure, 0, 1 );
-        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_mon );
-        HEL_LCD_SetCursor( &LCD_Structure, 0, 4 );
-        HEL_LCD_Data( &LCD_Structure, ',' );
-        HEL_LCD_SetCursor( &LCD_Structure, 0, 5 );
-        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_mday );
-        HEL_LCD_SetCursor( &LCD_Structure, 0, 8 );
-        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_year );
-        HEL_LCD_SetCursor( &LCD_Structure, 0, 13 );
-        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_wday );
-        HEL_LCD_SetCursor( &LCD_Structure, 0, 0 );
-        HEL_LCD_Data( &LCD_Structure, ' ' );
+        printDate( DisplayMsgtm_mon, DisplayMsgtm_mday, DisplayMsgtm_year, DisplayMsgtm_wday );
 
         if( flagPrintA == TRUE ){
             HEL_LCD_SetCursor( &LCD_Structure, 1, 0 );
@@ -234,9 +220,9 @@ void Display_StMachine( APP_MsgTypeDef *DisplayMsg )
         HEL_LCD_SetCursor( &LCD_Structure, 1, 4 );
         HEL_LCD_String( &LCD_Structure, alert );
 
-        HEL_LCD_Backlight( &LCD_Structure, 3u );
+        HEL_LCD_Backlight( &LCD_Structure, LCD_TOGGLE );
 
-        HAL_GPIO_TogglePin( GPIOB, GPIO_PIN_14 );
+        HAL_GPIO_TogglePin( GPIOB, BUZZER );
 
         monthNumberToMonthWord( DisplayMsg );
         weekDayNumberToWeekDayWord( DisplayMsg );
@@ -244,18 +230,7 @@ void Display_StMachine( APP_MsgTypeDef *DisplayMsg )
         (void)itoa( DisplayMsg->tm.tm_mday, DisplayMsgtm_mday, 10 );
         (void)itoa( DisplayMsg->tm.tm_year, DisplayMsgtm_year, 10 );
 
-        HEL_LCD_SetCursor( &LCD_Structure, 0, 1 );
-        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_mon );
-        HEL_LCD_SetCursor( &LCD_Structure, 0, 4 );
-        HEL_LCD_Data( &LCD_Structure, ',' );
-        HEL_LCD_SetCursor( &LCD_Structure, 0, 5 );
-        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_mday );
-        HEL_LCD_SetCursor( &LCD_Structure, 0, 8 );
-        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_year );
-        HEL_LCD_SetCursor( &LCD_Structure, 0, 13 );
-        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_wday );
-        HEL_LCD_SetCursor( &LCD_Structure, 0, 0 );
-        HEL_LCD_Data( &LCD_Structure, ' ' );
+        printDate( DisplayMsgtm_mon, DisplayMsgtm_mday, DisplayMsgtm_year, DisplayMsgtm_wday );
         break;
 
     case STATE_SHOW_ALARM:
@@ -281,18 +256,7 @@ void Display_StMachine( APP_MsgTypeDef *DisplayMsg )
         (void)itoa( DisplayMsg->tm.tm_mday, DisplayMsgtm_mday, 10 );
         (void)itoa( DisplayMsg->tm.tm_year, DisplayMsgtm_year, 10 );
 
-        HEL_LCD_SetCursor( &LCD_Structure, 0, 1 );
-        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_mon );
-        HEL_LCD_SetCursor( &LCD_Structure, 0, 4 );
-        HEL_LCD_Data( &LCD_Structure, ',' );
-        HEL_LCD_SetCursor( &LCD_Structure, 0, 5 );
-        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_mday );
-        HEL_LCD_SetCursor( &LCD_Structure, 0, 8 );
-        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_year );
-        HEL_LCD_SetCursor( &LCD_Structure, 0, 13 );
-        HEL_LCD_String( &LCD_Structure, DisplayMsgtm_wday );
-        HEL_LCD_SetCursor( &LCD_Structure, 0, 0 );
-        HEL_LCD_Data( &LCD_Structure, ' ' );
+        printDate( DisplayMsgtm_mon, DisplayMsgtm_mday, DisplayMsgtm_year, DisplayMsgtm_wday );
         break;
     
     default:
@@ -457,3 +421,39 @@ void weekDayNumberToWeekDayWord( APP_MsgTypeDef *DisplayMsg ){
         break;
     }
 }
+
+void printTime( char *hours, char *minutes, char *seconds )
+{
+    HEL_LCD_SetCursor( &LCD_Structure, 1, 3 );
+    HEL_LCD_String( &LCD_Structure, hours ); 
+    HEL_LCD_SetCursor( &LCD_Structure, 1, 5 );
+    HEL_LCD_Data( &LCD_Structure, ':' );
+    HEL_LCD_SetCursor( &LCD_Structure, 1, 6 );
+    HEL_LCD_String( &LCD_Structure, minutes );
+    HEL_LCD_SetCursor( &LCD_Structure, 1, 8 );
+    HEL_LCD_Data( &LCD_Structure, ':' );
+    HEL_LCD_SetCursor( &LCD_Structure, 1, 9 );
+    HEL_LCD_String( &LCD_Structure, seconds );
+}
+
+void printDate( char *month, char *day, char *year, char *weekDay )
+{
+    HEL_LCD_SetCursor( &LCD_Structure, 0, 1 );
+    HEL_LCD_String( &LCD_Structure, month );
+    HEL_LCD_SetCursor( &LCD_Structure, 0, 4 );
+    HEL_LCD_Data( &LCD_Structure, ',' );
+    HEL_LCD_SetCursor( &LCD_Structure, 0, 5 );
+    HEL_LCD_String( &LCD_Structure, day );
+    HEL_LCD_SetCursor( &LCD_Structure, 0, 8 );
+    HEL_LCD_String( &LCD_Structure, year );
+    HEL_LCD_SetCursor( &LCD_Structure, 0, 13 );
+    HEL_LCD_String( &LCD_Structure, weekDay );
+    HEL_LCD_SetCursor( &LCD_Structure, 0, 0 );
+    HEL_LCD_Data( &LCD_Structure, ' ' );
+}
+
+/*void printAlarm()
+{
+
+}*/
+
