@@ -22,7 +22,7 @@ uint8_t HIL_QUEUE_Write( QUEUE_HandleTypeDef *hqueue, void *data )
     uint8_t writingIsSuccessful = ZERO;
 
     if( hqueue->Full == ZERO ){
-        memcpy( hqueue->Buffer + hqueue->Head, data, hqueue->Size );  
+        (void)memcpy( hqueue->Buffer + hqueue->Head, data, hqueue->Size );  
         hqueue->Head += hqueue->Size % hqueue->Elements;
         hqueue->CounterWrite++;
 
@@ -48,7 +48,7 @@ uint8_t HIL_QUEUE_Read( QUEUE_HandleTypeDef *hqueue, void *data )
     uint8_t readingIsSuccessful = ZERO;
 
     if( HIL_QUEUE_IsEmpty( hqueue ) == ZERO ){
-        memcpy( data, hqueue->Buffer + hqueue->Tail, hqueue->Size );
+        (void)memcpy( data, hqueue->Buffer + hqueue->Tail, hqueue->Size );
         hqueue->Tail += hqueue->Size % hqueue->Elements;
         hqueue->CounterRead++;
         readingIsSuccessful = ONE;
@@ -86,7 +86,7 @@ void HIL_QUEUE_Flush( QUEUE_HandleTypeDef *hqueue ) /* cppcheck-suppress misra-c
     hqueue->Full = ZERO;
     hqueue->CounterWrite = ZERO;
     hqueue->CounterRead = ZERO;
-    memset( hqueue->Buffer, ' ', strlen(hqueue->Buffer) );
+    (void)memset( hqueue->Buffer, ' ', strlen(hqueue->Buffer) );
 }
 
 uint8_t HIL_QUEUE_WriteISR( QUEUE_HandleTypeDef *hqueue, void *data, uint8_t isr )
