@@ -252,7 +252,7 @@ void Clock_StMachine( APP_MsgTypeDef *ClockMsg )
         HAL_RTC_SetTime( &RTC_Structure, &sTime, RTC_FORMAT_BIN );
 
         alarmActive = FALSE;
-        HEL_LCD_Command( &LCD_Structure, CLEAR );
+        //HEL_LCD_Command( &LCD_Structure, CLEAR );
 
         ClockMsg->msg = STATE_GET_TIME_AND_DATE;
         break;
@@ -267,7 +267,7 @@ void Clock_StMachine( APP_MsgTypeDef *ClockMsg )
         HAL_RTC_SetDate( &RTC_Structure, &sDate, RTC_FORMAT_BIN );
 
         alarmActive = FALSE;
-        HEL_LCD_Command( &LCD_Structure, CLEAR );
+        //HEL_LCD_Command( &LCD_Structure, CLEAR );
 
         ClockMsg->msg = STATE_GET_TIME_AND_DATE;
         break;
@@ -324,7 +324,6 @@ void HAL_GPIO_EXTI_Rising_Callback( uint16_t GPIO_Pin )
 {
     (void)GPIO_Pin;
     showAlarm = FALSE;
-    HEL_LCD_Command( &LCD_Structure, CLEAR );
 }
 
 void runAlarm( void )
@@ -337,6 +336,5 @@ void runAlarm( void )
     else{
         alarmActive = FALSE;
         seconds = FALSE;
-        HEL_LCD_Command( &LCD_Structure, CLEAR );
     }
 }
